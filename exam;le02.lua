@@ -14,10 +14,11 @@ function update()
 
          if (distance >= max_distance) then
             vehicle:set_mode(COPTER_MODE_LOITER)
+            gcs:send_text(0, "LOITER ON")
          end
       end
    end
-   
+
    return update, 1000
 end
 
