@@ -17,6 +17,7 @@ end
 while true do
     -- Считываем данные с UART6
     local data_length = uart.available(uart_number)
+    gcs:send_text(0, "Hello Aleks")
     if data_length >= 10 and data_length <= 20 then
         local received_data = uart.read(uart_number, data_length)
         

@@ -1,7 +1,9 @@
-function update()
+function maa()
+   if (arming:is_armed()) then
    gcs:send_text(0, "Hello Aleks")
+   end
 
-   return update, 2000
+   return maa, 2000
 end
 
-return update, 1000
+return maa, 1000
