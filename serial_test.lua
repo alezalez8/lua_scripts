@@ -24,7 +24,7 @@ function spit ()
     step = step + 1
   end
   port:write(step)
-  return spit, 1000
+  return spit, 10
 end
 
 return spit, 1000
