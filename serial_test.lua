@@ -11,15 +11,16 @@ port:begin(9200)
 ---| '2' # auto
 port:set_flow_control(0)
 
-local step = 65
+local step = 0
 
 function spit ()
   if port:available() > 0 then
     read = port:read()
-    gcs:send_text(0, read .. " = " .. step)
+    --gcs:send_text(0, read .. " = " .. step)
+    gcs:send_text(0, string.char(read) .. " = " .. step)
   end
-  if step > 122 then
-    step = 65
+  if step >= 10 then
+    step = 0
   else
     step = step + 1
   end
