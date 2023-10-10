@@ -13,6 +13,15 @@ port:set_flow_control(0)
 
 local step = 0
 
+local function bytes_to_str(frame, num_chars)
+  local str = ''
+  if num_chars > #frame then num_chars = #frame end
+  for i = 1, num_chars do
+      str = str .. string.char(frame[i])
+  end
+  return str
+end
+
 function spit ()
   if port:available() > 0 then
     read = port:read()
