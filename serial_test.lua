@@ -27,6 +27,11 @@ function spit ()
     read = port:read()
     --gcs:send_text(0, read .. " = " .. step)
     gcs:send_text(0, string.char(read) .. " = " .. step)
+
+    -- MAVLINK_MSG_ID_NAMED_VALUE_FLOAT
+    gcs:send_named_float("myMineMessage", read) 
+     
+
   end
   if step >= 10 then
     step = 0
