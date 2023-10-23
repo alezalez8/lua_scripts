@@ -1,6 +1,7 @@
 -- Lua script to write and read from a serial
 
 local port = serial:find_serial(0)
+--local mavlink_msgs = require("MAVLink/mavlink_msgs")
 --local mavlink = require("mavlink.message")
 
 port:begin(9200)
@@ -34,10 +35,10 @@ function spit ()
    local lat = gps_position:lat()
    local lng = gps_position:lng()
 
+   -- local current_gps = gps:primary_sensor()
+   -- local current_gps_status = gps:status(current_gps)
+   -- local cur_pos = gps:location(current_gps)
 
-    --gcs:send_text(0, "lat" .. " = " .. lat)
-    --gcs:send_text(0, "lon" .. " = " .. lon)
-    --gcs:send_text(0, "alt" .. " = " .. alt)
     lat = lat/1e7
     --lng = lng/1e7
     

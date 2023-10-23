@@ -17,6 +17,7 @@ local step = 0
 
 
 
+
 function spit ()
 
    --local lat, lon, alt = mavlink.vehicle:get_location()
@@ -26,11 +27,12 @@ function spit ()
    local lng = gps_position:lng()
 
 
-    lat = lat/1e7
+    --lat = lat/1e7
     --lng = lng/1e7
     
     gcs:send_text(0, "lat" .. "=" .. lat .. "  lon" .. "=" .. lng )
     --gcs:send_text(0, "long" .. " = " .. lng)
+    
 
 
 
@@ -40,9 +42,9 @@ function spit ()
     step = step + 1
   end
   --port:write(step)
-  return spit, 200
+  return spit, 100
 end
-
+ 
 return spit, 1000
 -- Returns the UART instance that allows connections from scripts (those with SERIALx_PROTOCOL = 28`).
 -- For instance = 0, returns first such UART, second for instance = 1, and so on.
