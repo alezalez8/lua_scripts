@@ -19,6 +19,7 @@ local step = 0
 
 
 function spit ()
+   if ahrs:healthy() then
 
    --local lat, lon, alt = mavlink.vehicle:get_location()
    local mygps = gps:num_sensors();
@@ -27,13 +28,16 @@ function spit ()
    local lng = gps_position:lng()
 
 
+   
+
+
     --lat = lat/1e7
     --lng = lng/1e7
     
     gcs:send_text(0, "lat" .. "=" .. lat .. "  lon" .. "=" .. lng )
     --gcs:send_text(0, "long" .. " = " .. lng)
-    
-
+    else gcs:send_text(0, "NO DATA FROM GPS")
+   end
 
 
   if step >= 10 then
