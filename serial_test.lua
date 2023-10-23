@@ -22,6 +22,7 @@ local function bytes_to_str(frame, num_chars)
   return str
 end
 
+
 function spit ()
   if port:available() > 0 then
     read = port:read()
@@ -30,6 +31,7 @@ function spit ()
 
     -- MAVLINK_MSG_ID_NAMED_VALUE_FLOAT
     gcs:send_named_float("myMineMessage", read) 
+    gcs:send_named_float("myMineMessage______", 33)
      
 
   end
