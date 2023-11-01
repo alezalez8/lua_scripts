@@ -13,10 +13,16 @@ port:begin(9200)
 port:set_flow_control(0)
 
 local step = 0
+local missn = mission:state()
+mission.MISSION_RUNNING()
 
+function myBattery ()
+  local currentVolt = tostring(battery:voltage(0))
+  gcs:send_text(0, currentVolt)
 
+end
 
-
+-- Named float values from Lua show up as MAV_XXXX
 
 function spit ()
    if ahrs:healthy() then
@@ -26,6 +32,13 @@ function spit ()
    local gps_position = gps:location(gps:primary_sensor())
    local lat = gps_position:lat()
    local lng = gps_position:lng()
+   local mypos = ahrs:get_position()
+   local vv = nil
+
+   
+
+
+ 
 
 
    

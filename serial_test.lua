@@ -32,6 +32,8 @@ function spit ()
     -- MAVLINK_MSG_ID_NAMED_VALUE_FLOAT
     gcs:send_named_float("myMineMessage", read) 
     gcs:send_named_float("myMineMessage______", 33)
+
+    -- Named float values from Lua show up as MAV_XXXX
      
 
   end
