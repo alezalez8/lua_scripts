@@ -6,6 +6,7 @@ port:set_flow_control(0)
 local step = 0
 local amountOfData = 10
 local myData = ''
+local currentData
 
 local function bytes_to_str(frame, num_chars)
    local str = ''
@@ -16,15 +17,28 @@ local function bytes_to_str(frame, num_chars)
    return str
 end
 
+function getData()
+   if port:available() > 0 then
+      currentData = string.char(port:read())
+      return currentData
+   else
+      return getData(), 2
+   end
+end
 
+function getGPS()
+   --local mygps = gps:num_sensors();
+   local gps_position = gps:location(gps:primary_sensor())
+   local lat = gps_position:lat()
+   local lng = gps_position:lng()
+end
 
-function getMineData()
+function getAllData()
    local str = " "
    for i = 1, amountOfData do
-      if port:available() > 0 then
-         myData = myData .. string.char(port:read()) .. str
-      end
+      myData = myData .. getData()
    end
+
    return myData
 end
 
