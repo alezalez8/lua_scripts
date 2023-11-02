@@ -5,7 +5,7 @@ port:set_flow_control(0)
 
 local step = 0
 local amountOfData = 10
-local myData = ''
+local myData = ""
 local currentData = "Port not found"
 local lat
 local lng
@@ -22,21 +22,22 @@ end
 
 function getAllData()
    local str = " "
-   if port then
-      for i = 1, amountOfData do
-         myData = myData .. getData()
-      end
+   --if port then
+   for i = 1, amountOfData do
+      myData = myData .. getData()
    end
+   --end
 
    local gps_position = gps:location(gps:primary_sensor())
    lat = gps_position:lat()
    lng = gps_position:lng()
-   myData = myData .. " " .. lat .. " " .. lng
+   myData = myData .. " " .. lat .. " " .. lng .. " end"
    return myData
 end
 
 function update()
-   gcs:send_text(0, getAllData())
+   local myMessage = getAllData()
+   gcs:send_text(0, myMessage)
    -- MAVLINK_MSG_ID_NAMED_VALUE_FLOAT
    --gcs:send_named_float("myMineMessage", read)
    --gcs:send_named_float("myMineMessage______", 33)

@@ -14,43 +14,35 @@ port:set_flow_control(0)
 
 local step = 0
 local missn = mission:state()
-mission.MISSION_RUNNING()
+--mission.MISSION_RUNNING()
 
-function myBattery ()
-  local currentVolt = tostring(battery:voltage(0))
-  gcs:send_text(0, currentVolt)
+--function myBattery ()
+-- local currentVolt = tostring(battery:voltage(0))
+-- gcs:send_text(0, currentVolt)
 
-end
+--end
 
 -- Named float values from Lua show up as MAV_XXXX
 
-function spit ()
-   if ahrs:healthy() then
+function spit()
+  if ahrs:healthy() then
+    --local lat, lon, alt = mavlink.vehicle:get_location()
+    local mygps = gps:num_sensors();
+    local gps_position = gps:location(gps:primary_sensor())
+    local lat = gps_position:lat()
+    local lng = gps_position:lng()
+    local mypos = ahrs:get_position()
+    local vv = nil
 
-   --local lat, lon, alt = mavlink.vehicle:get_location()
-   local mygps = gps:num_sensors();
-   local gps_position = gps:location(gps:primary_sensor())
-   local lat = gps_position:lat()
-   local lng = gps_position:lng()
-   local mypos = ahrs:get_position()
-   local vv = nil
-
-   
-
-
- 
-
-
-   
-
-
+    
     --lat = lat/1e7
     --lng = lng/1e7
-    
-    gcs:send_text(0, "lat" .. "=" .. lat .. "  lon" .. "=" .. lng )
+
+    gcs:send_text(0, "lat" .. "=" .. lat .. "  lon" .. "=" .. lng)
     --gcs:send_text(0, "long" .. " = " .. lng)
-    else gcs:send_text(0, "NO DATA FROM GPS")
-   end
+  else
+    gcs:send_text(0, "NO DATA FROM GPS")
+  end
 
 
   if step >= 10 then
@@ -61,7 +53,7 @@ function spit ()
   --port:write(step)
   return spit, 100
 end
- 
+
 return spit, 1000
 -- Returns the UART instance that allows connections from scripts (those with SERIALx_PROTOCOL = 28`).
 -- For instance = 0, returns first such UART, second for instance = 1, and so on.
