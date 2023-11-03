@@ -1,30 +1,27 @@
 local port = serial:find_serial(0)
-port:begin(9200)
+port:begin(38400)
 port:set_flow_control(0)
 
 
-local step = 0
-local amountOfData = 2
+local amountOfData = 10
 local myData = ""
 local currentData = "Port not found"
 local lat
 local lng
 
 
-local myPacket = {
+-- local myPacket = {
 
-   { name = "latit",   type = "float",   offset = 0 },
-   { name = "longtid", type = "float",   offset = 4 },
-    { name = "data",    type = "uint8_t", count = 8 } }
+--    { name = "latit",   type = "float",   offset = 0 },
+--    { name = "longtid", type = "float",   offset = 4 },
+--     { name = "data",    type = "uint8_t", count = 8 } }
    
-local dss = string.pack("I4I4ff", 0xFEFEFE, 0, myPacket[1], myPacket[2])
-
-
+-- local dss = string.pack("I4I4ff", 0xFEFEFE, 0, myPacket[1], myPacket[2])
 
 -- Create the message struct
-local message = {}
-message.name = "My Custom Message"
-message.fields = myPacket
+-- local message = {}
+-- message.name = "My Custom Message"
+-- message.fields = myPacket
 
 
 --mavlink.send_chan(self, chan, msgid, message)
