@@ -1,0 +1,136 @@
+chatGTP
+-- Function to split a number into two parts
+function splitNumber(number)
+    -- Convert the number to a string
+    local numberString = tostring(number)
+    
+    -- Check if the number has more than 4 digits
+    if #numberString > 4 then
+        -- Extract the first 5 digits as the first part
+        local firstPart = tonumber(numberString:sub(1, 5))
+        
+        -- Extract the remaining digits as the second part
+        local secondPart = tonumber(numberString:sub(6))
+        
+        return firstPart, secondPart
+    else
+        -- If the number has 4 or fewer digits, return the whole number as the first part
+        return number, 0
+    end
+end
+
+-- Example usage
+local number = 123456789
+local firstPart, secondPart = splitNumber(number)
+print("First Part: " .. firstPart)
+print("Second Part: " .. secondPart)
+====================== and with prefix ===================================
+-- Function to split a number into two parts with prefixes
+function splitNumberWithPrefix(number)
+    -- Convert the number to a string
+    local numberString = tostring(number)
+    
+    -- Check if the number has more than 4 digits
+    if #numberString > 4 then
+        -- Extract the first 5 digits as the first part with prefix "A"
+        local firstPart = "A" .. numberString:sub(1, 5)
+        
+        -- Extract the remaining digits as the second part with prefix "B"
+        local secondPart = "B" .. numberString:sub(6)
+        
+        return firstPart, secondPart
+    else
+        -- If the number has 4 or fewer digits, return the whole number as the first part with prefix "A"
+        local firstPart = "A" .. numberString
+        return firstPart, "B0"
+    end
+end
+
+-- Example usage
+local number = 123456789
+local firstPart, secondPart = splitNumberWithPrefix(number)
+print("First Part: " .. firstPart)
+print("Second Part: " .. secondPart)
+
+=========================================
+another chat:
+
+-- Define the number
+num = 123456789
+
+-- Convert the number to a string
+str = tostring(num)
+
+-- Split the string into two parts
+part1 = string.sub(str, 1, 5)
+part2 = string.sub(str, 6)
+
+-- Convert the parts back to numbers
+part1 = tonumber(part1)
+part2 = tonumber(part2)
+
+-- Print the parts
+print(part1)
+print(part2)
+============and with prefix===================
+-- Define the number
+num = 123456789
+
+-- Convert the number to a string
+str = tostring(num)
+
+-- Split the string into two parts
+part1 = string.sub(str, 1, 5)
+part2 = string.sub(str, 6)
+
+-- Print the parts
+print("A" .. part1)
+print("B" .. part2)
+
+
+============= отправка сразу с разбитием на два числа ==========================
+-- Function to split a large number into two parts and send them to the ground station
+function sendLargeNumberToGroundStation(gcs, number)
+    -- Convert the number to a string
+    local numberString = tostring(number)
+    
+    -- Split the number into two parts
+    local firstPart = tonumber(numberString:sub(1, 5))  -- Assuming the first 5 digits
+    local secondPart = tonumber(numberString:sub(6))   -- The remaining digits
+    
+    -- Send the parts to the ground station
+    gcs:send_named_float('PART_A', firstPart)
+    gcs:send_named_float('PART_B', secondPart)
+end
+
+-- Example usage
+local number = 123456789
+sendLargeNumberToGroundStation(gcs, number)
+ ===============================================================
+
+для произвольной длины последовательности:
+-- Function to split a large number into parts and send them to the ground station
+function sendLargeNumberToGroundStation(gcs, number)
+    -- Convert the number to a string
+    local numberString = tostring(number)
+    
+    -- Determine the length of the number and split it into parts accordingly
+    local maxLength = 20  -- Maximum length of the number
+    local numLength = #numberString
+    
+    local numParts = math.ceil(numLength / maxLength)
+    
+    -- Split the number into parts and send them to the ground station
+    for i = 1, numParts do
+        local startIdx = 1 + (i - 1) * maxLength
+        local endIdx = i * maxLength
+        local part = tonumber(numberString:sub(startIdx, endIdx)) or 0
+        
+        local partName = 'PART_' .. tostring(i)
+        gcs:send_named_float(partName, part)
+    end
+end
+
+-- Example usage
+local number = 12345678901234567890  -- Example number with 20 digits
+sendLargeNumberToGroundStation(gcs, number)
