@@ -111,6 +111,13 @@ if(millis() - timeInvokeMode >= timeInvokeModePeriod) {
 //========================================================================= подпрограммы ===================================
 
 static void getDataLevel() {
+  
+for(int i = 5; i >=1; i--){
+  if(digitalRead(i) == 1) {
+    return currentLevel = i;
+  }
+}
+
 if(digitalRead(levelPin1) == 6) {currentLevel = 6;}
   else if(digitalRead(levelPin5) == 1) {currentLevel = 5;}
   else if(digitalRead(levelPin4) == 1) {currentLevel = 4;}
