@@ -2,16 +2,9 @@ local port = serial:find_serial(0)
 port:begin(57600)
 port:set_flow_control(0)
 
-
-local amountOfData = 5
-local myData = ""
-local currentData = "Port not found"
-local lat
-local lng
 local MAX_BUFFER = 9
 
 
----------------------------------Yuriy_Rage-----------------------------------
 function getBuffer()
    local buffer = ''
    while port:available() > 0 do
@@ -29,7 +22,7 @@ function getBuffer()
    --       gcs:send_named_float('VAL', val)
    --    end
    -- end
-   return '1111111111'
+   return '1234567890'
 end
 
 --------------------------------------------------------------------
@@ -68,19 +61,19 @@ end
 -- Function to split a number into two parts
 function splitNumber(number)
    local numberString = number
-   if numberString ~= nil then
-      -- Check if the number has more than 4 digits
-      if #numberString > 4 then
-         local firstPart = tonumber(numberString:sub(1, 5))
-         local secondPart = tonumber(numberString:sub(6))
+   if numberString == nil then
+      return 1, 1
+   end
+   -- Check if the number has more than 4 digits
+   if #numberString > 4 then
+      local firstPart = tonumber(numberString:sub(1, 5))
+      local secondPart = tonumber(numberString:sub(6))
+      gcs:send_text(0, "firstPart =  " .. firstPart)
 
-         return firstPart, secondPart
-      else
-         -- If the number has 4 or fewer digits, return the whole number as the first part
-         return number, 0
-      end
+      return firstPart, secondPart
    else
-      return 1
+      -- If the number has 4 or fewer digits, return the whole number as the first part
+      return tonumber(numberString), 0
    end
 end
 
