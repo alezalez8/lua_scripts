@@ -14,7 +14,7 @@ local MAX_BUFFER = 9
 ---------------------------------Yuriy_Rage-----------------------------------
 function getBuffer()
    local buffer = ''
-   local val
+   --local val
    while port:available() > 0 do
       buffer = buffer .. string.char(port:read())
       if buffer:len() >= MAX_BUFFER then
@@ -97,7 +97,7 @@ function update()
    gcs:send_named_float("DAT_L", dataPartTwo)
 
 
-   return update, 100
+   return update, 3
 end
 
 return update, 1000
