@@ -112,9 +112,9 @@ if(millis() - timeInvokeMode >= timeInvokeModePeriod) {
 
 static void getDataLevel() {
   
-for(int i = 5; i >=1; i--){
+for(int i = 12; i >=7; i--){
   if(digitalRead(i) == 1) {
-    return currentLevel = i;
+    return currentLevel = i - 6;
   }
 }
 
