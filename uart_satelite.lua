@@ -22,7 +22,8 @@ function getBuffer()
          -- val = tonumber(buffer)
          break
       end
-      return buffer
+      --return buffer
+      return '4555345899' -- for test
    end
 
    -- if buffer:len() > 0 then
@@ -54,10 +55,16 @@ function getGPS()
    local gps_position = gps:location(gps:primary_sensor())
    local lat = gps_position:lat()
    local lng = gps_position:lng()
+
+   -- if lat == 0 then
+   --    lat = 123456789
+   -- end
    coord[1] = tostring(lat)
    coord[2] = tostring(lng)
+   --gcs:send_text(0, coord[1])
    --return coord
-   return coord[1], coord[2]
+   --return coord[1], coord[2]
+   return "454545450", "676767670"
 end
 
 -- Function to split a number into two parts
@@ -85,6 +92,7 @@ end
 function update()
    local myUARTData = getBuffer()
    local lat, lng = getGPS()
+   gcs:send_text(0, lat)
    local latHigh, latLow = splitNumber(lat)
    local lngHigh, lngLow = splitNumber(lng)
    local dataPartOne, dataPartTwo = splitNumber(myUARTData)
