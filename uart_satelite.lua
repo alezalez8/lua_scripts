@@ -14,16 +14,12 @@ local MAX_BUFFER = 9
 ---------------------------------Yuriy_Rage-----------------------------------
 function getBuffer()
    local buffer = ''
-   --local val
    while port:available() > 0 do
       buffer = buffer .. string.char(port:read())
       if buffer:len() >= MAX_BUFFER then
-         --return update, RUN_INTERVAL_MS
-         -- val = tonumber(buffer)
          break
       end
-      --return buffer
-      return '4555345899' -- for test
+      return buffer
    end
 
    -- if buffer:len() > 0 then
@@ -33,6 +29,7 @@ function getBuffer()
    --       gcs:send_named_float('VAL', val)
    --    end
    -- end
+   return '1111111111'
 end
 
 --------------------------------------------------------------------
@@ -56,35 +53,34 @@ function getGPS()
    local lat = gps_position:lat()
    local lng = gps_position:lng()
 
-   -- if lat == 0 then
-   --    lat = 123456789
-   -- end
+   if lat == 0 or lng == 0 then
+      lat = 0
+      lng = 0
+   end
+
    coord[1] = tostring(lat)
    coord[2] = tostring(lng)
-   --gcs:send_text(0, coord[1])
-   --return coord
-   --return coord[1], coord[2]
-   return "454545450", "676767670"
+
+   return coord[1], coord[2]
+   --return "454545450", "676767670"
 end
 
 -- Function to split a number into two parts
 function splitNumber(number)
-   -- Convert the number to a string
-   --local numberString = tostring(number)
    local numberString = number
+   if numberString ~= nil then
+      -- Check if the number has more than 4 digits
+      if #numberString > 4 then
+         local firstPart = tonumber(numberString:sub(1, 5))
+         local secondPart = tonumber(numberString:sub(6))
 
-   -- Check if the number has more than 4 digits
-   if #numberString > 4 then
-      -- Extract the first 5 digits as the first part
-      local firstPart = tonumber(numberString:sub(1, 5))
-
-      -- Extract the remaining digits as the second part
-      local secondPart = tonumber(numberString:sub(6))
-
-      return firstPart, secondPart
+         return firstPart, secondPart
+      else
+         -- If the number has 4 or fewer digits, return the whole number as the first part
+         return number, 0
+      end
    else
-      -- If the number has 4 or fewer digits, return the whole number as the first part
-      return number, 0
+      return 1
    end
 end
 
@@ -92,7 +88,6 @@ end
 function update()
    local myUARTData = getBuffer()
    local lat, lng = getGPS()
-   gcs:send_text(0, lat)
    local latHigh, latLow = splitNumber(lat)
    local lngHigh, lngLow = splitNumber(lng)
    local dataPartOne, dataPartTwo = splitNumber(myUARTData)
@@ -105,7 +100,7 @@ function update()
    gcs:send_named_float("DAT_L", dataPartTwo)
 
 
-   return update, 3
+   return update, 200
 end
 
 return update, 1000
