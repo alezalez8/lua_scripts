@@ -1,9 +1,9 @@
 local port = serial:find_serial(0)
-port:begin(38400)
+port:begin(57600)
 port:set_flow_control(0)
 
 
-local amountOfData = 10
+local amountOfData = 5
 local myData = ""
 local currentData = "Port not found"
 local lat
@@ -11,20 +11,24 @@ local lng
 
 
 ---------------------------------Yuriy_Rage-----------------------------------
-local buffer = ''
-while port:available() > 0 do
-   buffer = buffer .. string.char(port:read())
-   if buffer:len() > MAX_BUFFER then
-      return update, RUN_INTERVAL_MS
+function getBuffer()
+   local buffer = ''
+   while port:available() > 0 do
+      buffer = buffer .. string.char(port:read())
+      if buffer:len() > MAX_BUFFER and buffer:len() > 0 then
+         --return update, RUN_INTERVAL_MS
+         local val = tonumber(buffer)
+         return val
+      end
    end
-end
 
-if buffer:len() > 0 then
-   -- insert error checking logic here
-   local val = tonumber(buffer)
-   if val then      -- tonumber returns nil on error, which evaluates to false
-      gcs:send_named_float('VAL', val)
-   end
+   -- if buffer:len() > 0 then
+   --    -- insert error checking logic here
+   --    local val = tonumber(buffer)
+   --    if val then -- tonumber returns nil on error, which evaluates to false
+   --       gcs:send_named_float('VAL', val)
+   --    end
+   -- end
 end
 
 --------------------------------------------------------------------
@@ -58,7 +62,8 @@ end
 
 -- this function calls data from UART and GPS data every 100 ms and send to GS
 function update()
-   local myMessage = getAllData()
+   local myDataFromPort = getBuffer
+   --local myMessage = getAllData()
    -- check data on screen--
    gcs:send_text(0, myMessage)
    return update, 100
