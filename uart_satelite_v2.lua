@@ -1,18 +1,19 @@
 local port = serial:find_serial(0)
 port:begin(57600)
 port:set_flow_control(0)
-
 local MAX_BUFFER = 10
+
 
 function getBuffer()
     local buffer = ''
     while port:available() > 0 do
         buffer = buffer .. string.char(port:read())
+        customDelay()
+
         if buffer:len() >= MAX_BUFFER then
             break
         end
     end
-    --gcs:send_text(0, "DAT_H = " .. buffer)
     return buffer
 end
 
@@ -59,7 +60,7 @@ function update()
     gcs:send_named_float("DAT_H", dataPartOne)
     gcs:send_named_float("DAT_L", dataPartTwo)
 
-    return update, 200
+    return update, 100
 end
 
 return update, 1000
