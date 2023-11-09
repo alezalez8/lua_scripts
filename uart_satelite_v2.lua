@@ -8,7 +8,6 @@ function getBuffer()
     local buffer = ''
     while port:available() > 0 do
         buffer = buffer .. string.char(port:read())
-        customDelay()
 
         if buffer:len() >= MAX_BUFFER then
             break
