@@ -2,7 +2,7 @@ local port = serial:find_serial(0)
 port:begin(57600)
 port:set_flow_control(0)
 
-local MAX_BUFFER = 9
+local MAX_BUFFER = 10
 
 function getBuffer()
     local buffer = ''
@@ -12,9 +12,9 @@ function getBuffer()
             break
         end
     end
+    --gcs:send_text(0, "DAT_H = " .. buffer)
     return buffer
 end
-
 
 function getGPS()
     local coord = {}
@@ -55,6 +55,7 @@ function update()
     gcs:send_named_float("LAT_L", latLow)
     gcs:send_named_float("LON_H", lngHigh)
     gcs:send_named_float("LON_L", lngLow)
+    --gcs:send_text(0, "DAT_H = " .. dataPartOne)
     gcs:send_named_float("DAT_H", dataPartOne)
     gcs:send_named_float("DAT_L", dataPartTwo)
 
