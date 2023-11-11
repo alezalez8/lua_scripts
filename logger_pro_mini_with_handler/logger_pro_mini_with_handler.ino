@@ -35,6 +35,8 @@ const int arraySize = 20;
 int dataArray[arraySize];
 int dataIndex = 0;
 
+bool ledOn = false;
+
 // ------------ level input --------------------------
 static const uint8_t levelPin1 = 7;
 static const uint8_t levelPin2 = 8;
@@ -110,9 +112,11 @@ void loop()
     if (Serial.available() > 0)
     {
       char readyToPass = Serial.read();
-      if (readyToPass == 'r')
+      if (readyToPass == '5')
       {
         clearBuffer();
+       ledOn = !ledOn;
+       blinkLed(ledOn);
         sendArray();
       }
     }
@@ -171,7 +175,7 @@ void sendArray()
   {
     Serial.print(dataArray[i]);
   }
-  Serial.println();
+  //Serial.println();
   memset(dataArray, 1, sizeof(dataArray));
 }
 
@@ -250,4 +254,8 @@ void adjustSensitive(unsigned long timePWM)
 
   int valueOfSensitive = map(timePWM, 1000, 1950, 0, 255);
   analogWrite(sensitiveOutput, valueOfSensitive);
+}
+
+void blinkLed(bool onoff){
+  digitalWrite(resetOutput, onoff);
 }

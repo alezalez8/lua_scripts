@@ -1,16 +1,19 @@
 local port = serial:find_serial(0)
-port:begin(57600)
+port:begin(19200)
 port:set_flow_control(0)
-local MAX_BUFFER = 10
+local MAX_BUFFER = 20
 
 
 function getBuffer()
    local buffer = ''
    while port:available() > 0 do
-      buffer = buffer .. string.char(port:read())
+      local currentChar = port:read()
+      if (currentChar ~= '/n') then
+         buffer = buffer .. string.char(currentChar)
 
-      if buffer:len() >= MAX_BUFFER then
-         break
+         if buffer:len() >= MAX_BUFFER then
+            break
+         end
       end
    end
    return buffer
@@ -30,7 +33,7 @@ function getGPS()
    return coord[1], coord[2]
 end
 
-function splitNumber(number)
+function splitNumberGPS(number)
    if number == nil then
       return 1, 1
    end
@@ -44,22 +47,43 @@ function splitNumber(number)
    end
 end
 
+function splitNumberData(number)
+   if number == nil or #number == 0 then
+      return 1, 1, 1, 1
+   end
+   local numberString = tostring(number)
+   if #numberString > 4 then
+      local firstPart = tonumber(numberString:sub(1, 5))
+      local secondPart = tonumber(numberString:sub(6, 10))
+      local thirdPart = tonumber(numberString:sub(11, 15))
+      local fourthdPart = tonumber(numberString:sub(16, 20))
+
+      return firstPart, secondPart, thirdPart, fourthdPart
+   else
+      return tonumber(numberString), 0
+   end
+end
+
 function update()
+   port:write(53)
    local myUARTData = getBuffer()
+   gcs:send_text(0, myUARTData)
    local lat, lng = getGPS()
-   local latHigh, latLow = splitNumber(lat)
-   local lngHigh, lngLow = splitNumber(lng)
-   local dataPartOne, dataPartTwo = splitNumber(myUARTData)
+   local latHigh, latLow = splitNumberGPS(lat)
+   local lngHigh, lngLow = splitNumberGPS(lng)
+   local dataPartOne, dataPartTwo, dataPartThre, dataPartFour = splitNumberData(myUARTData)
 
    gcs:send_named_float("LAT_H", latHigh)
    gcs:send_named_float("LAT_L", latLow)
    gcs:send_named_float("LON_H", lngHigh)
    gcs:send_named_float("LON_L", lngLow)
    --gcs:send_text(0, "DAT_H = " .. dataPartOne)
-   gcs:send_named_float("DAT_H", dataPartOne)
-   gcs:send_named_float("DAT_L", dataPartTwo)
+   gcs:send_named_float("DAT_1", dataPartOne)
+   gcs:send_named_float("DAT_2", dataPartTwo)
+   gcs:send_named_float("DAT_3", dataPartThre)
+   gcs:send_named_float("DAT_4", dataPartFour)
 
-   return update, 100
+   return update, 200
 end
 
 return update, 1000
