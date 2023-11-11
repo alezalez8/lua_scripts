@@ -21,7 +21,7 @@ function update()
       local current_gps = gps:primary_sensor()
       local current_gps_status = gps:status(current_gps)
       local cur_pos = gps:location(current_gps)
-      local ggg = current_gps:
+      --local ggg = current_gps:
       -- gcs:send_text(4, string.format("Status GPS: %d", current_gps_status))
       -- gcs:send_text(4, string.format("Status GPS: %d", cur_pos))
 
