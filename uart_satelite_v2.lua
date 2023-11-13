@@ -55,11 +55,15 @@ function update()
     gcs:send_named_float("LAT_L", latLow)
     gcs:send_named_float("LON_H", lngHigh)
     gcs:send_named_float("LON_L", lngLow)
-    --gcs:send_text(0, "DAT_H = " .. dataPartOne)
     gcs:send_named_float("DAT_H", dataPartOne)
     gcs:send_named_float("DAT_L", dataPartTwo)
 
     return update, 100
 end
 
+
 return update, 1000
+
+
+
+
