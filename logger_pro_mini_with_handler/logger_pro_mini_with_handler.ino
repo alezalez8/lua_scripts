@@ -31,7 +31,7 @@ uint32_t timeInvokeMode = 0;
 uint32_t timeInvokeModePeriod = 50;
 int currentLevel = 1;
 
-const int arraySize = 20;
+const int arraySize = 10;
 int dataArray[arraySize];
 int dataIndex = 0;
 
@@ -77,7 +77,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(modeDetectorInput), handleInterrupt1, CHANGE);
   attachInterrupt(digitalPinToInterrupt(sensitiveDetectorInput), handleInterrupt2, CHANGE);
 
-  for (int i = 0; i < 20; i++)
+  for (int i = 0; i < 10; i++)
   {
     dataArray[i] = 1;
   }
@@ -88,6 +88,8 @@ void setup()
 
 void loop()
 {
+
+  Serial.println("Helloy");
 
   if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod)
   {
@@ -159,6 +161,35 @@ static void getDataLevelDumpTwo()
     }
   }
 }
+
+//---------------------------------- new dump 3 ---------------------------------
+static void getDataLevelDumpThree(int countOfPacket)
+{
+  int randomLevel = random(1, 7);
+  int randomPosition = random(0, arraySize);
+  for(int i = 0; i < arraySize; i++){
+    dataArray[i] = 1;
+  }
+  if(countOfPacket == 3) {
+
+  }
+
+
+  for (int i = 12; i >= 7; i--)
+  {
+    if (randomLevel == i - 6)
+    {
+      for (int j = 0; j < arraySize - 1; j++)
+      {
+        dataArray[j] = dataArray[j + 1];
+      }
+      dataArray[arraySize - 1] = i - 6;
+      break;
+    }
+  }
+}
+
+//---------------------------------- end new dump 3 -----------------------------
 
 void clearBuffer()
 {
