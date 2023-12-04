@@ -1,5 +1,5 @@
 local port = serial:find_serial(0)
-port:begin(19200)
+port:begin(57600)
 port:set_flow_control(0)
 local MAX_BUFFER = 20
 
