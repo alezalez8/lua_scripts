@@ -23,7 +23,7 @@
 */
 uint32_t timerLevel = 0;  // timer for LEVEL
 uint32_t timerLevelTest = 0;
-#define T_PERIOD_LEVEL 10  // time of invoke data from sensor of level, mS.
+#define T_PERIOD_LEVEL 35  // time of invoke data from sensor of level, mS.
 #define T_PERIOD_LEVEL_TEST 200
 
 uint32_t timeInvokeSensitive = 0;
@@ -33,7 +33,8 @@ uint32_t timeInvokeMode = 0;
 uint32_t timeInvokeModePeriod = 50;
 int currentLevel = 1;
 
-const int arraySize = 20;
+//const int arraySize = 20;
+const int arraySize = 10;    // add 31.12.2023 instead line 36
 int dataArray[arraySize];
 int dataIndex = 0;
 
@@ -80,11 +81,13 @@ void setup() {
  
   arrayInit();
 
-  randomSeed(analogRead(0));
+  //randomSeed(analogRead(0));
   Serial.begin(57600);
 }
 
 void loop() {
+
+  // invoke for handler PWM from FC
 
   if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod) {
     timeInvokeSensitive = millis();
@@ -100,10 +103,10 @@ void loop() {
   if (Serial.available() > 0) {
     char readyToPass = Serial.read();
     if (readyToPass == '5') {
-      clearBuffer();
       ledOn = !ledOn;
       blinkLed(ledOn);
       sendArray();
+      clearBuffer();
     }
   }
 
@@ -116,7 +119,7 @@ void loop() {
   // }
 
 
-  // -------------------- read data every 10 ms ----------------------------
+  // -------------------- read data every 35 ms ----------------------------
   if (millis() - timerLevel >= T_PERIOD_LEVEL) {
     timerLevel = millis();
     getDataLevelNew();
