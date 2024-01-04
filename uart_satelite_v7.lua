@@ -43,7 +43,10 @@ function forarm()
             local bbb = aaa:alt()
         end
 
-        local lidar_distance = rangefinder:
+        local lidar_distance = RangeFinder_State():distance()
+        --local levBattery = num_instances()
+        --local batt = voltage(levBattery)
+        local saa = battery:voltage(battery:num_instances())
     end
 end
 
@@ -81,26 +84,41 @@ function splitNumberData(number)
 end
 
 function update()
-    port:write(53)
-    local myUARTData = getBuffer()
-    --gcs:send_text(0, myUARTData)
+    --port:write(53)
+    --local myUARTData = getBuffer()
+    ----gcs:send_text(0, myUARTData)
     local lat, lng = getGPS()
     local latHigh, latLow = splitNumberGPS(lat)
     local lngHigh, lngLow = splitNumberGPS(lng)
+    --local lidar_distance = RangeFinder_State():distance()
+    --gcs:send_text('0', "Latitude = " .. lat)
+    --gcs:send_text('0', "Longtitude = " .. lng)
+
+    local lidar = rangefinder:distance_cm_orient(25)
+    local battery_level = battery:voltage(0)
+    gcs:send_named_float("BATTERY", battery_level)
+    gcs:send_named_float("LIDAR", lidar)
+
+
+
+    -- gcs:send_text('0', "Battery = " .. saa)
+    -- gcs:send_text('0', "Lidar = " .. lid)
+
+
     --local dataPartOne, dataPartTwo, dataPartThre, dataPartFour = splitNumberData(myUARTData)
-    local dataPartOne, dataPartTwo = splitNumberData(myUARTData)
+    --local dataPartOne, dataPartTwo = splitNumberData(myUARTData)
 
     gcs:send_named_float("LAT_H", latHigh)
     gcs:send_named_float("LAT_L", latLow)
     gcs:send_named_float("LON_H", lngHigh)
     gcs:send_named_float("LON_L", lngLow)
-    --gcs:send_text(0, "DAT_H = " .. dataPartOne)
-    gcs:send_named_float("DAT_1", dataPartOne)
-    gcs:send_named_float("DAT_2", dataPartTwo)
-    --gcs:send_named_float("DAT_3", dataPartThre)
-    --gcs:send_named_float("DAT_4", dataPartFour)
+    ----gcs:send_text(0, "DAT_H = " .. dataPartOne)
+    --gcs:send_named_float("DAT_1", dataPartOne)
+    --gcs:send_named_float("DAT_2", dataPartTwo)
+    -- --gcs:send_named_float("DAT_3", dataPartThre)
+    ----gcs:send_named_float("DAT_4", dataPartFour)
 
-    return update, 350 -- was 200
+    return update, 200 -- was 200
 end
 
 return update, 1000
