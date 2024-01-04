@@ -1,5 +1,6 @@
+local uartspeed = 57600
 local port = serial:find_serial(0)
-port:begin(57600)
+port:begin(uartspeed)
 port:set_flow_control(0)
 local MAX_BUFFER = 10
 
@@ -34,19 +35,7 @@ end
 
 function forarm()
     if (arming:is_armed()) then
-        --
-        --
-        --
-        --
-        local aaa = ahrs:get_location()
-        if (aaa ~= nil) then
-            local bbb = aaa:alt()
-        end
 
-        local lidar_distance = RangeFinder_State():distance()
-        --local levBattery = num_instances()
-        --local batt = voltage(levBattery)
-        local saa = battery:voltage(battery:num_instances())
     end
 end
 
@@ -73,10 +62,7 @@ function splitNumberData(number)
     if #numberString > 4 then
         local firstPart = tonumber(numberString:sub(1, 5))
         local secondPart = tonumber(numberString:sub(6, 10))
-        --local thirdPart = tonumber(numberString:sub(11, 15))
-        --local fourthdPart = tonumber(numberString:sub(16, 20))
 
-        --return firstPart, secondPart, thirdPart, fourthdPart
         return firstPart, secondPart
     else
         return tonumber(numberString), 0
@@ -85,7 +71,7 @@ end
 
 function update()
     --port:write(53)
-    --local myUARTData = getBuffer()
+
 
     local lat, lng = getGPS()
     local latHigh, latLow = splitNumberGPS(lat)
@@ -96,41 +82,14 @@ function update()
     gcs:send_named_float("BATTERY", battery_level)
     gcs:send_named_float("LIDAR", lidar)
 
-    local dataString = "1: " .. lat .. "2: " .. lng .. "3: " .. lidar .. "4: " .. battery_level
+    local dataString = "1: " .. lat .. "  2: " .. lng .. "  3: " .. lidar .. "  4: " .. battery_level .. "  end  "
 
-
-    -- local numbers = {}
-    -- for number in my_packet:gmatch("%d+%.?%d*") do
-    --     table.insert(numbers, tonumber(number))
-    -- end
-
-    -- -- Convert floating-point numbers to integers
-    -- for i, v in ipairs(numbers) do
-    --     numbers[i] = math.floor(v)
-    -- end
-
-    -- -- Assuming you have a valid UART port object named 'port', write the numbers to the port
-    -- local dataToSend = string.char(table.unpack(numbers))
 
     local asciiCodes = {}
     for i = 1, #dataString do
-        -- table.insert(asciiCodes, string.byte(dataString, i))
         local asciiCode = string.byte(dataString, i)
         port:write(asciiCode)
     end
-    -- ++++++++++++++++++++++++++++++++++++
-    -- -- Assuming you have a valid UART port object named 'port', write the ASCII codes to the port
-    -- local dataToSend = string.char(table.unpack(asciiCodes))
-
-    -- --port:write(dataToSend)
-    -- port:write(table.unpack(asciiCodes))
-    -- ++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-
-
-    -- gcs:send_text('0', "Battery = " .. saa)
-    -- gcs:send_text('0', "Lidar = " .. lid)
 
 
     gcs:send_named_float("LAT_H", latHigh)
@@ -139,7 +98,7 @@ function update()
     gcs:send_named_float("LON_L", lngLow)
 
 
-    return update, 200 -- was 200
+    return update, 200
 end
 
 return update, 1000
