@@ -32,6 +32,21 @@ function getGPS()
     return coord[1], coord[2]
 end
 
+function forarm()
+    if (arming:is_armed()) then
+        --
+        --
+        --
+        --
+        local aaa = ahrs:get_location()
+        if (aaa ~= nil) then
+            local bbb = aaa:alt()
+        end
+
+        local lidar_distance = rangefinder:
+    end
+end
+
 function splitNumberGPS(number)
     if number == nil then
         return 1, 1
