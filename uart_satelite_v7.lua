@@ -86,18 +86,46 @@ end
 function update()
     --port:write(53)
     --local myUARTData = getBuffer()
-    ----gcs:send_text(0, myUARTData)
+
     local lat, lng = getGPS()
     local latHigh, latLow = splitNumberGPS(lat)
     local lngHigh, lngLow = splitNumberGPS(lng)
-    --local lidar_distance = RangeFinder_State():distance()
-    --gcs:send_text('0', "Latitude = " .. lat)
-    --gcs:send_text('0', "Longtitude = " .. lng)
 
     local lidar = rangefinder:distance_cm_orient(25)
     local battery_level = battery:voltage(0)
     gcs:send_named_float("BATTERY", battery_level)
     gcs:send_named_float("LIDAR", lidar)
+
+    local dataString = "1: " .. lat .. "2: " .. lng .. "3: " .. lidar .. "4: " .. battery_level
+
+
+    -- local numbers = {}
+    -- for number in my_packet:gmatch("%d+%.?%d*") do
+    --     table.insert(numbers, tonumber(number))
+    -- end
+
+    -- -- Convert floating-point numbers to integers
+    -- for i, v in ipairs(numbers) do
+    --     numbers[i] = math.floor(v)
+    -- end
+
+    -- -- Assuming you have a valid UART port object named 'port', write the numbers to the port
+    -- local dataToSend = string.char(table.unpack(numbers))
+
+    local asciiCodes = {}
+    for i = 1, #dataString do
+        -- table.insert(asciiCodes, string.byte(dataString, i))
+        local asciiCode = string.byte(dataString, i)
+        port:write(asciiCode)
+    end
+    -- ++++++++++++++++++++++++++++++++++++
+    -- -- Assuming you have a valid UART port object named 'port', write the ASCII codes to the port
+    -- local dataToSend = string.char(table.unpack(asciiCodes))
+
+    -- --port:write(dataToSend)
+    -- port:write(table.unpack(asciiCodes))
+    -- ++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 
 
@@ -105,18 +133,11 @@ function update()
     -- gcs:send_text('0', "Lidar = " .. lid)
 
 
-    --local dataPartOne, dataPartTwo, dataPartThre, dataPartFour = splitNumberData(myUARTData)
-    --local dataPartOne, dataPartTwo = splitNumberData(myUARTData)
-
     gcs:send_named_float("LAT_H", latHigh)
     gcs:send_named_float("LAT_L", latLow)
     gcs:send_named_float("LON_H", lngHigh)
     gcs:send_named_float("LON_L", lngLow)
-    ----gcs:send_text(0, "DAT_H = " .. dataPartOne)
-    --gcs:send_named_float("DAT_1", dataPartOne)
-    --gcs:send_named_float("DAT_2", dataPartTwo)
-    -- --gcs:send_named_float("DAT_3", dataPartThre)
-    ----gcs:send_named_float("DAT_4", dataPartFour)
+
 
     return update, 200 -- was 200
 end
