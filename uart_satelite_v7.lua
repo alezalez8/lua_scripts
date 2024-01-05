@@ -21,7 +21,7 @@ end
 
 function getGPS()
     local coord = {}
-    local gps_position = gps:location(gps:primary_sensor())
+    local gps_position = gps:location(gps:primary_sensor())    
     local lat = gps_position:lat()
     local lng = gps_position:lng()
     if lat == 0 or lng == 0 then
@@ -79,10 +79,14 @@ function update()
 
     local lidar = rangefinder:distance_cm_orient(25)
     local battery_level = battery:voltage(0)
+    local gpsok = 0
+
     gcs:send_named_float("BATTERY", battery_level)
     gcs:send_named_float("LIDAR", lidar)
 
     local dataString = "1: " .. lat .. "  2: " .. lng .. "  3: " .. lidar .. "  4: " .. battery_level .. "  end  "
+
+
 
 
     local asciiCodes = {}
@@ -102,3 +106,6 @@ function update()
 end
 
 return update, 1000
+
+-- need add GPS_OK_FIX_3D
+
