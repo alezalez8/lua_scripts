@@ -98,7 +98,7 @@ function update()
     gcs:send_named_float("LON_L", lngLow)
 
 
-    return update, 200
+    return update, 50
 end
 
 return update, 1000
