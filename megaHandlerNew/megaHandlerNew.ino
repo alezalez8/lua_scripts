@@ -29,11 +29,13 @@
  */
 
 uint32_t timerLevel = 0;   // timer for LEVEL
-#define T_PERIOD_LEVEL 3.7 // time of invoke data from sensor of level, mS. default = 3.7
+#define T_PERIOD_LEVEL 10 // time of invoke data from sensor of level, mS. default = 3.7
 
 uint32_t timeInvokeSensitive = 0;
 uint32_t timeInvokeSensPeriod = 15;
 uint32_t countOfInvokeLevel = 0;
+int dumpCount = 0;
+
 
 static const uint32_t GPSBaud = 57600; //
 
@@ -108,7 +110,22 @@ void setup()
 }
 
 void loop()
+
 {
+  Serial2.write('5');
+  delay(2);
+  if(Serial2.available()){
+    char dataGPS = Serial2.read();
+    Serial1.write(dataGPS);
+    Serial.print(dataGPS);
+  } else {Serial.println("GPS is not available... ");}
+
+  Serial.println();
+
+  if(dumpCount >= 9 ){}
+    dumpCount = 0;
+
+  
 
   if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod)
   {
@@ -122,7 +139,13 @@ void loop()
   if (millis() - timerLevel >= T_PERIOD_LEVEL)
   {
     timerLevel = millis();
-    getDataLevel();
+    //---------------- dump data ----------------------------
+    Serial1.write(dumpCount);
+    Serial.print(dumpCount);
+    Serial.print(' ');
+    dumpCount++;   
+
+    //getDataLevel();
   }
 
 }
