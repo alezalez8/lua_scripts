@@ -118,12 +118,6 @@ void loop()
 
   //====================================invoke gps and level===================
 
-  if (millis() - timerGPS >= T_PERIOD_GPS)
-  {
-    timerGPS = millis();
-    ifReset();
-    modeOfDetector(pulseWidth1);
-  }
 
   if (millis() - timerLevel >= T_PERIOD_LEVEL)
   {
@@ -131,7 +125,6 @@ void loop()
     getDataLevel();
   }
 
-  smartDelay(2);
 }
 
 //========================================================================= подпрограммы ===================================
@@ -197,15 +190,6 @@ int binary_to_int(char *binary_string)
   return total;
 }
 
-static void smartDelay(unsigned long ms)
-{
-  unsigned long start = millis();
-  do
-  {
-    while (Serial1.available())
-      gps.encode(Serial1.read());
-  } while (millis() - start < ms);
-}
 
 //-------------------------------------------------------------
 static void printInt(unsigned long val, bool valid, int len)
@@ -253,8 +237,6 @@ static void printFloat(float val, bool valid, int len, int prec)
     Serial.print(val, prec);
     Serial2.print(val, prec);
 
-    if (myFile)
-      myFile.print(val, prec);
     int vi = abs((int)val);
     int flen = prec + (val < 0.0 ? 2 : 1);
     flen += vi >= 1000 ? 4 : vi >= 100 ? 3
@@ -266,32 +248,8 @@ static void printFloat(float val, bool valid, int len, int prec)
   }
 }
 
-//-------------------------------------------------------------
-
-static void getFileName(TinyGPSDate &d, TinyGPSTime &t)
-{
-  int currentHour = 0;                    // correction current hour
-  int dayOfset = 0;                       // correction current day
-  currentHour = t.hour() + timeZoneOfset; // correction current hour
-  if (currentHour >= 24)
-  {
-    currentHour = currentHour - 24;
-    dayOfset = 1;
-  }
-
-  char nameOfFile[32];
-  // sprintf(nameOfFile, "%02d%02d%02d_%02d_%02d_%02d.txt", d.day(), d.month(), d.year(), currentHour, t.minute(), t.second());
-  sprintf(nameOfFile, "%02d%02d%02d.txt", currentHour, t.minute(), t.second());
-  nameOfLogFile = String(nameOfFile);
-}
 
 // --------------------------- new handlers ---------------------------------------
-void ifReset()
-{
-  boolean isRes = digitalRead(resetDetectorInput);
-  digitalWrite(resetOutput, isRes);
-  digitalWrite(resetDetectorLed, isRes);
-}
 
 // --------------------- mode of minedetector --------------------------------------
 void handleInterrupt1()
@@ -325,6 +283,12 @@ void handleInterrupt2()
     pulseWidth2 = currentTime2 - startTime2;
   }
 }
+
+void handleInterrupt3()
+{}
+
+void handleInterrupt4()
+{}
 
 void printPWM(unsigned long timePWM)
 {
@@ -366,7 +330,7 @@ void adjustSensitive(unsigned long timePWM)
 
   int valueOfSensitive = map(timePWM, 1000, 1950, 0, 255);
   analogWrite(sensitiveOutput, valueOfSensitive);
-  analogWrite(testPWM, valueOfSensitive);
+  //analogWrite(testPWM, valueOfSensitive);
 }
 
 // ------------------------------------ service ----------------------------------
