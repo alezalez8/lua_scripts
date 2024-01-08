@@ -99,11 +99,12 @@ function update()
         gcs:send_named_float("LIDAR", lidar)
         gcs:send_text(6, lidar)
 
+        local battery1 = string.format("%.2f", battery_level)
 
-        local dataString = " " ..
+        local dataString = "b " ..
             lat ..
             " " ..
-            lng .. " " .. lidar .. " " .. battery_level .. " sat " .. satt .. " end @"
+            lng .. " " .. lidar .. " " .. battery1 .. " s " .. satt .. " d @"
 
         local asciiCodes = {}
         for i = 1, #dataString do
@@ -125,5 +126,3 @@ function update()
 end
 
 return update, 1000
-
--- need add GPS_OK_FIX_3D

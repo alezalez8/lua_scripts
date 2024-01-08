@@ -136,9 +136,9 @@ void loop() {
       ledOn = !ledOn;
       digitalWrite(testLED, ledOn);
     }
-    Serial1.println(mydata);
-    //delay(100);
-    Serial.println();
+    Serial1.print(mydata);
+    Serial1.println(" 1 2 3 4 5 6 7 8 9 10");
+
   }
 
 
