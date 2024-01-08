@@ -21,23 +21,27 @@
  * light IR ON/OFF                                                D29
  * reset detector                                                 D30
  * ON/OFF detector                                                D31
- *
+ * Test LED                                                       D13
  *
  * --------------------------------- Serials ------------------------
  * Serial1 (TX1 - 18, RX1 - 19 )   output to 3DR modem
  * Serial2 (TX1 - 16, RX1 - 17 )   to UART of FC
  */
 
-uint32_t timerLevel = 0;   // timer for LEVEL
-#define T_PERIOD_LEVEL 10 // time of invoke data from sensor of level, mS. default = 3.7
+uint32_t timerLevel = 0;    // timer for LEVEL
+#define T_PERIOD_LEVEL 100  // time of invoke data from sensor of level, mS. default = 3.7
 
 uint32_t timeInvokeSensitive = 0;
 uint32_t timeInvokeSensPeriod = 15;
 uint32_t countOfInvokeLevel = 0;
-int dumpCount = 0;
+uint32_t dumpCount = 0;
+boolean ledOn = false;
 
 
-static const uint32_t GPSBaud = 57600; //
+
+static const uint32_t GPSBaud = 57600;  //
+
+String messageGPS = "";
 
 // ------------ level input --------------------------
 static const uint8_t levelPin1 = 22;
@@ -49,6 +53,7 @@ static const uint8_t levelPin6 = 27;
 
 // ------------ led output ----------------------------
 const int sateliteFix = 28;
+const int testLED = 13;
 
 // ------------ control output -------------------------
 const int lightOnOff = 29;
@@ -58,19 +63,18 @@ const int sensitiveOutput = 4;
 const int modeDetectorOutput = 5;
 
 // ------------- sygnal from FC --------------------
-const int modeDetectorInput = 2;      // mode of detector
-const int sensitiveDetectorInput = 3; // sensitive of detector
-const int resetDetectorInput = 20;    // reset_on_off
-const int lightIR = 21;               // light on_off
+const int modeDetectorInput = 2;       // mode of detector
+const int sensitiveDetectorInput = 3;  // sensitive of detector
+const int resetDetectorInput = 20;     // reset_on_off
+const int lightIR = 21;                // light on_off
 
 // ----------- for interrupt -----------------------
-volatile unsigned long pulseWidth1 = 0; // time of PPM of S11 on FC - MODE
-volatile unsigned long pulseWidth2 = 0; // time of PPM of S12 on FC - SENSITIVE
-volatile unsigned long pulseWidth3 = 0; // time of PPM of S11 on FC - reset_on_off
-volatile unsigned long pulseWidth4 = 0; // time of PPM of S12 on FC - light on_off
+volatile unsigned long pulseWidth1 = 0;  // time of PPM of S11 on FC - MODE
+volatile unsigned long pulseWidth2 = 0;  // time of PPM of S12 on FC - SENSITIVE
+volatile unsigned long pulseWidth3 = 0;  // time of PPM of S11 on FC - reset_on_off
+volatile unsigned long pulseWidth4 = 0;  // time of PPM of S12 on FC - light on_off
 
-void setup()
-{
+void setup() {
   // pinMode(chipSelect, OUTPUT);
   // pinMode(stopRecordLowLevelPin, INPUT_PULLUP);
 
@@ -83,9 +87,12 @@ void setup()
   pinMode(lightOnOff, OUTPUT);
   pinMode(resetOutput, OUTPUT);
   pinMode(powerOnOff, OUTPUT);
-  pinMode(sensitiveOutput, OUTPUT);    // уточнить
-  pinMode(modeDetectorOutput, OUTPUT); // уточнить
+  pinMode(sensitiveOutput, OUTPUT);     // уточнить
+  pinMode(modeDetectorOutput, OUTPUT);  // уточнить
   pinMode(sateliteFix, OUTPUT);
+
+  pinMode(testLED, OUTPUT);
+  digitalWrite(testLED, ledOn);
 
   pinMode(modeDetectorInput, INPUT);
   pinMode(sensitiveDetectorInput, INPUT);
@@ -105,54 +112,62 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(lightIR), handleInterrupt4, CHANGE);
 
   Serial.begin(57600);
-  Serial1.begin(GPSBaud); // Connect to FC through the UART pins
-  Serial2.begin(GPSBaud); // Connect to 3DR-modem
+  Serial1.begin(GPSBaud);  // Connect to FC through the UART pins
+  Serial2.begin(GPSBaud);  // Connect to 3DR-modem
 }
 
-void loop()
+void loop() {
+  String mydata = "";
 
-{
-  Serial2.write('5');
-  delay(2);
-  if(Serial2.available()){
-    char dataGPS = Serial2.read();
-    Serial1.write(dataGPS);
-    Serial.print(dataGPS);
-  } else {Serial.println("GPS is not available... ");}
+  if (millis() - timerLevel >= T_PERIOD_LEVEL) {
+    timerLevel = millis();
 
-  Serial.println();
 
-  if(dumpCount >= 9 ){}
-    dumpCount = 0;
+    Serial2.write('5');
+    while (Serial2.available()) {
+      char dataGPS = Serial2.read();
+      if (dataGPS == '@') {
+        Serial.println(" -------------- STOP ----------------------------");
+        break;
+      }
 
-  
+      mydata += String(dataGPS);
+      Serial.print(dataGPS);
+      ledOn = !ledOn;
+      digitalWrite(testLED, ledOn);
+    }
+    Serial1.println(mydata);
+    //delay(100);
+    Serial.println();
+  }
 
-  if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod)
-  {
+
+  if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod) {
     timeInvokeSensitive = millis();
     adjustSensitive(pulseWidth2);
   }
 
   //====================================invoke gps and level===================
+  //delay(495);
+
+  // if (millis() - timerLevel >= T_PERIOD_LEVEL) {
+  //   timerLevel = millis();
+  //   //---------------- dump data ----------------------------
+  //   Serial1.write(dumpCount);
+  //   Serial.println("-- print from loop ---");
+  //   Serial.print(dumpCount);
+  //   dumpCount++;
+  //   if (dumpCount > 9) {
+  //     dumpCount = 0;
+  //   }
 
 
-  if (millis() - timerLevel >= T_PERIOD_LEVEL)
-  {
-    timerLevel = millis();
-    //---------------- dump data ----------------------------
-    Serial1.write(dumpCount);
-    Serial.print(dumpCount);
-    Serial.print(' ');
-    dumpCount++;   
-
-    //getDataLevel();
-  }
-
+  //   //getDataLevel();
+  // }
 }
 
 //========================================================================= подпрограммы ===================================
-static void getDataLevel()
-{
+static void getDataLevel() {
   // uint8_t level_value = getLevel(!digitalRead(levePin1), !digitalRead(levePin2), !digitalRead(levePin3));
   // printInt(level_value, true, 3);  // value from level sensor
   uint8_t level_value = getNewLevel();
@@ -160,52 +175,37 @@ static void getDataLevel()
 }
 
 //-------------------------------------------------------------
-static int getLevel(bool value1, bool value2, bool value3)
-{
+static int getLevel(bool value1, bool value2, bool value3) {
   String binaryString;
   binaryString += value3;
   binaryString += value2;
   binaryString += value1;
-  int decimalValue = binary_to_int(binaryString.c_str()); // convert to decimal
+  int decimalValue = binary_to_int(binaryString.c_str());  // convert to decimal
   return decimalValue + 1;
 }
 //-------------------------------------------------------------
-static int getNewLevel()
-{
+static int getNewLevel() {
   int currentLevel = 1;
-  if (digitalRead(levelPin1) == 1)
-  {
+  if (digitalRead(levelPin1) == 1) {
     currentLevel = 1;
-  }
-  else if (digitalRead(levelPin2) == 1)
-  {
+  } else if (digitalRead(levelPin2) == 1) {
     currentLevel = 2;
-  }
-  else if (digitalRead(levelPin3) == 1)
-  {
+  } else if (digitalRead(levelPin3) == 1) {
     currentLevel = 3;
-  }
-  else if (digitalRead(levelPin4) == 1)
-  {
+  } else if (digitalRead(levelPin4) == 1) {
     currentLevel = 4;
-  }
-  else if (digitalRead(levelPin5) == 1)
-  {
+  } else if (digitalRead(levelPin5) == 1) {
     currentLevel = 5;
-  }
-  else if (digitalRead(levelPin6) == 1)
-  {
+  } else if (digitalRead(levelPin6) == 1) {
     currentLevel = 6;
   }
 
   return currentLevel;
 }
 
-int binary_to_int(char *binary_string)
-{
+int binary_to_int(char *binary_string) {
   int total = 0;
-  while (*binary_string)
-  {
+  while (*binary_string) {
     total *= 2;
     if (*binary_string++ == '1')
       total += 1;
@@ -215,8 +215,7 @@ int binary_to_int(char *binary_string)
 
 
 //-------------------------------------------------------------
-static void printInt(unsigned long val, bool valid, int len)
-{
+static void printInt(unsigned long val, bool valid, int len) {
   char sz[32] = "*****************";
   if (valid)
     sprintf(sz, "%ld", val);
@@ -230,8 +229,7 @@ static void printInt(unsigned long val, bool valid, int len)
 }
 
 //-------------------------------------------------------------
-static void printLevel(unsigned long val, bool valid, int len)
-{
+static void printLevel(unsigned long val, bool valid, int len) {
   char sz[32] = "*****************";
   if (valid)
     sprintf(sz, "%ld", val);
@@ -245,25 +243,21 @@ static void printLevel(unsigned long val, bool valid, int len)
 }
 
 //-------------------------------------------------------------
-static void printFloat(float val, bool valid, int len, int prec)
-{
-  if (!valid)
-  {
+static void printFloat(float val, bool valid, int len, int prec) {
+  if (!valid) {
     while (len-- > 1)
       Serial.print('*');
     Serial.print(' ');
     Serial2.print('*');
     Serial2.print(' ');
-  }
-  else
-  {
+  } else {
     Serial.print(val, prec);
     Serial2.print(val, prec);
 
     int vi = abs((int)val);
     int flen = prec + (val < 0.0 ? 2 : 1);
     flen += vi >= 1000 ? 4 : vi >= 100 ? 3
-                         : vi >= 10    ? 2
+                           : vi >= 10  ? 2
                                        : 1;
     for (int i = flen; i < len; ++i)
       Serial.print(' ');
@@ -275,46 +269,35 @@ static void printFloat(float val, bool valid, int len, int prec)
 // --------------------------- new handlers ---------------------------------------
 
 // --------------------- mode of minedetector --------------------------------------
-void handleInterrupt1()
-{
+void handleInterrupt1() {
 
   static unsigned long startTime1 = 0;
   unsigned long currentTime1 = micros();
 
-  if (digitalRead(modeDetectorInput) == HIGH)
-  {
+  if (digitalRead(modeDetectorInput) == HIGH) {
     startTime1 = currentTime1;
-  }
-  else
-  {
+  } else {
     pulseWidth1 = currentTime1 - startTime1;
   }
 }
 
-void handleInterrupt2()
-{
+void handleInterrupt2() {
 
   static unsigned long startTime2 = 0;
   unsigned long currentTime2 = micros();
 
-  if (digitalRead(sensitiveDetectorInput) == HIGH)
-  {
+  if (digitalRead(sensitiveDetectorInput) == HIGH) {
     startTime2 = currentTime2;
-  }
-  else
-  {
+  } else {
     pulseWidth2 = currentTime2 - startTime2;
   }
 }
 
-void handleInterrupt3()
-{}
+void handleInterrupt3() {}
 
-void handleInterrupt4()
-{}
+void handleInterrupt4() {}
 
-void printPWM(unsigned long timePWM)
-{
+void printPWM(unsigned long timePWM) {
   Serial.println();
   String message = " Time of PWM =  ";
   Serial.print(message);
@@ -322,32 +305,23 @@ void printPWM(unsigned long timePWM)
   Serial.println();
 }
 
-void modeOfDetector(unsigned long timePWM)
-{
+void modeOfDetector(unsigned long timePWM) {
 
-  if (timePWM >= 950 && timePWM <= 1350)
-  {
+  if (timePWM >= 950 && timePWM <= 1350) {
     analogWrite(modeDetectorOutput, 0);
-  }
-  else if (timePWM >= 1400 && timePWM <= 1700)
-  {
+  } else if (timePWM >= 1400 && timePWM <= 1700) {
     analogWrite(modeDetectorOutput, 78);
-  }
-  else if (timePWM > 1750)
-  {
+  } else if (timePWM > 1750) {
     analogWrite(modeDetectorOutput, 255);
   }
 }
 
-void adjustSensitive(unsigned long timePWM)
-{
+void adjustSensitive(unsigned long timePWM) {
 
-  if (timePWM < 1000)
-  {
+  if (timePWM < 1000) {
     timePWM = 1000;
   }
-  if (timePWM > 1950)
-  {
+  if (timePWM > 1950) {
     timePWM = 1950;
   }
 

@@ -1,19 +1,27 @@
-local uartspeed = 57600
 local port = serial:find_serial(0)
-port:begin(uartspeed)
+
+if not port or baud == 0 then
+    gcs:send_text(0, "No Scripting Serial Port")
+    return
+end
+
+port:begin(57600)
 port:set_flow_control(0)
+
 local MAX_BUFFER = 10
-local if_request = false
+local if_request = true
 
 
 function getFromLogger()
     while port:available() > 0 do
         local passw = port:read()
+        gcs:send_text(0, passw)
         if passw == 53 then
             if_request = true
+        else
+            if_request = false
         end
     end
-    return if_request
 end
 
 function getBuffer()
@@ -68,8 +76,18 @@ function forarm()
 end
 
 function update()
-    while getFromLogger do
-        local lat, lng = getGPS()
+    if not port then
+        gcs:send_text(0, "no Scripting Serial Port")
+        return update, 100
+    end
+    --getFromLogger()
+    if port:available() > 0 then
+        local nothing = port:read()
+
+
+
+
+        local lat, lng, satt = getGPS()
         local latHigh, latLow = splitNumberGPS(lat)
         local lngHigh, lngLow = splitNumberGPS(lng)
 
@@ -79,27 +97,31 @@ function update()
 
         gcs:send_named_float("BATTERY", battery_level)
         gcs:send_named_float("LIDAR", lidar)
+        gcs:send_text(6, lidar)
 
-        local dataString = "1: " .. lat .. "  2: " .. lng .. "  3: " .. lidar .. "  4: " .. battery_level .. "  end  "
 
+        local dataString = " " ..
+            lat ..
+            " " ..
+            lng .. " " .. lidar .. " " .. battery_level .. " sat " .. satt .. " end @"
 
         local asciiCodes = {}
         for i = 1, #dataString do
             local asciiCode = string.byte(dataString, i)
             port:write(asciiCode)
         end
+        --port:write(64) -- @
 
 
         gcs:send_named_float("LAT_H", latHigh)
         gcs:send_named_float("LAT_L", latLow)
         gcs:send_named_float("LON_H", lngHigh)
         gcs:send_named_float("LON_L", lngLow)
-
-        if_request = false
+        gcs:send_named_float("SATT", satt)
+    else
+        gcs:send_text(6, " NO REQUEST")
     end
-
-
-    return update, 50
+    return update, 10
 end
 
 return update, 1000
