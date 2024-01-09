@@ -31,8 +31,22 @@
 uint32_t timerLevel = 0;    // timer for LEVEL
 #define T_PERIOD_LEVEL 100  // time of invoke data from sensor of level, mS. default = 3.7
 
+// ----- sensitive -------
 uint32_t timeInvokeSensitive = 0;
-uint32_t timeInvokeSensPeriod = 15;
+uint32_t timeInvokeSensPeriod = 20;
+
+// ------- mode ----------
+uint32_t timeInvokeMode = 0;
+uint32_t timeInvokeModePeriod = 150;
+
+// -------- power and reset --------
+uint32_t timeInvokePower = 0;
+uint32_t timeInvokePowerPeriod = 100;
+
+// ------ light on\off -------------
+uint32_t timeInvokeLight = 0;
+uint32_t timeInvokeLightPeriod = 100;
+
 uint32_t countOfInvokeLevel = 0;
 uint32_t dumpCount = 0;
 boolean ledOn = false;
@@ -75,15 +89,6 @@ volatile unsigned long pulseWidth3 = 0;  // time of PPM of S11 on FC - reset_on_
 volatile unsigned long pulseWidth4 = 0;  // time of PPM of S12 on FC - light on_off
 
 void setup() {
-  // pinMode(chipSelect, OUTPUT);
-  // pinMode(stopRecordLowLevelPin, INPUT_PULLUP);
-
-  const int lightOnOff = 29;
-  const int resetOutput = 30;
-  const int powerOnOff = 31;
-  const int sensitiveOutput = 4;
-  const int modeDetectorOutput = 5;
-
   pinMode(lightOnOff, OUTPUT);
   pinMode(resetOutput, OUTPUT);
   pinMode(powerOnOff, OUTPUT);
@@ -117,6 +122,7 @@ void setup() {
 }
 
 void loop() {
+
   String mydata = "";
 
   if (millis() - timerLevel >= T_PERIOD_LEVEL) {
@@ -138,14 +144,32 @@ void loop() {
     }
     Serial1.print(mydata);
     Serial1.println(" 1 2 3 4 5 6 7 8 9 10");
-
   }
 
-
+  // ------------------------------- sensitive -------------------------------------------
   if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod) {
     timeInvokeSensitive = millis();
     adjustSensitive(pulseWidth2);
   }
+
+  // -------------------------------- mode of detector -----------------------------------
+  if (millis() - timeInvokeMode >= timeInvokeModePeriod) {
+    timeInvokeMode = millis();
+    modeOfDetector(pulseWidth1);
+  }
+
+  // -------------------------------- power and reset ------------------------------------
+  if (millis() - timeInvokePower >= timeInvokePowerPeriod) {
+    timeInvokePower = millis();
+    managerOfPowerReset(pulseWidth3);
+  }
+
+  // -------------------------------- light on\off ---------------------------------------
+  if (millis() - timeInvokeLight >= timeInvokeLightPeriod) {
+    timeInvokeLight = millis();
+    managerLight(pulseWidth4);
+  }
+
 
   //====================================invoke gps and level===================
   //delay(495);
@@ -166,7 +190,129 @@ void loop() {
   // }
 }
 
+
+
 //========================================================================= подпрограммы ===================================
+
+// --------------------- POWER ON\OFF AND RESET ------------------------------------------
+void managerOfPowerReset(unsigned long timePWM) {
+  if (timePWM < 1000) {
+    timePWM = 1000;
+  }
+  if (timePWM > 1950) {
+    timePWM = 1950;
+  }
+
+  if (timePWM >= 950 && timePWM <= 1350) {
+    digitalWrite(powerOnOff, 0);
+    digitalWrite(resetOutput, 0);
+
+  } else if (timePWM >= 1400 && timePWM <= 1700) {
+    digitalWrite(powerOnOff, 1);
+    digitalWrite(resetOutput, 0);
+    //digitalWrite(testReset, 0);
+
+  } else if (timePWM > 1750) {
+    digitalWrite(powerOnOff, 1);
+    digitalWrite(resetOutput, 1);
+    //digitalWrite(testReset, 1);
+  }
+}
+
+// --------------------- LIGHT ON\OFF ----------------------------------------------------
+void managerLight(unsigned long timePWM) {
+
+  if (timePWM < 1000) {
+    timePWM = 1000;
+  }
+  if (timePWM > 1950) {
+    timePWM = 1950;
+  }
+  if (timePWM >= 950 && timePWM <= 1350) {
+    digitalWrite(lightOnOff, 0);
+
+  } else if (timePWM >= 1400 && timePWM <= 1700) {
+    digitalWrite(lightOnOff, 1);
+
+  } else if (timePWM > 1750) {
+    digitalWrite(lightOnOff, 1);
+  }
+}
+
+// ----------------------- MODE DETECTOR -------------------------------------------------
+void modeOfDetector(unsigned long timePWM) {
+
+  if (timePWM >= 950 && timePWM <= 1350) {
+    analogWrite(modeDetectorOutput, 0);
+  } else if (timePWM >= 1400 && timePWM <= 1700) {
+    analogWrite(modeDetectorOutput, 78);
+  } else if (timePWM > 1750) {
+    analogWrite(modeDetectorOutput, 255);
+  }
+}
+
+// ---------------------------- SENSITIVE ------------------------------------------------
+void adjustSensitive(unsigned long timePWM) {
+
+  if (timePWM < 1000) {
+    timePWM = 1000;
+  }
+  if (timePWM > 1950) {
+    timePWM = 1950;
+  }
+  int valueOfSensitive = map(timePWM, 1000, 1950, 0, 255);
+  analogWrite(sensitiveOutput, valueOfSensitive);
+}
+
+// --------------------- interrupts  -----------------------------------------------------
+void handleInterrupt1() {
+
+  static unsigned long startTime1 = 0;
+  unsigned long currentTime1 = micros();
+
+  if (digitalRead(modeDetectorInput) == HIGH) {
+    startTime1 = currentTime1;
+  } else {
+    pulseWidth1 = currentTime1 - startTime1;
+  }
+}
+
+void handleInterrupt2() {
+
+  static unsigned long startTime2 = 0;
+  unsigned long currentTime2 = micros();
+
+  if (digitalRead(sensitiveDetectorInput) == HIGH) {
+    startTime2 = currentTime2;
+  } else {
+    pulseWidth2 = currentTime2 - startTime2;
+  }
+}
+
+void handleInterrupt3() {
+  static unsigned long startTime3 = 0;
+  unsigned long currentTime3 = micros();
+
+  if (digitalRead(resetDetectorInput) == HIGH) {
+    startTime3 = currentTime3;
+  } else {
+    pulseWidth3 = currentTime3 - startTime3;
+  }
+}
+
+void handleInterrupt4() {
+  static unsigned long startTime4 = 0;
+  unsigned long currentTime4 = micros();
+
+  if (digitalRead(lightIR) == HIGH) {
+    startTime4 = currentTime4;
+  } else {
+    pulseWidth4 = currentTime4 - startTime4;
+  }
+}
+
+
+
 static void getDataLevel() {
   // uint8_t level_value = getLevel(!digitalRead(levePin1), !digitalRead(levePin2), !digitalRead(levePin3));
   // printInt(level_value, true, 3);  // value from level sensor
@@ -266,36 +412,11 @@ static void printFloat(float val, bool valid, int len, int prec) {
 }
 
 
-// --------------------------- new handlers ---------------------------------------
+// --------------------------- new handlers ----------------------------------------------
 
-// --------------------- mode of minedetector --------------------------------------
-void handleInterrupt1() {
 
-  static unsigned long startTime1 = 0;
-  unsigned long currentTime1 = micros();
 
-  if (digitalRead(modeDetectorInput) == HIGH) {
-    startTime1 = currentTime1;
-  } else {
-    pulseWidth1 = currentTime1 - startTime1;
-  }
-}
 
-void handleInterrupt2() {
-
-  static unsigned long startTime2 = 0;
-  unsigned long currentTime2 = micros();
-
-  if (digitalRead(sensitiveDetectorInput) == HIGH) {
-    startTime2 = currentTime2;
-  } else {
-    pulseWidth2 = currentTime2 - startTime2;
-  }
-}
-
-void handleInterrupt3() {}
-
-void handleInterrupt4() {}
 
 void printPWM(unsigned long timePWM) {
   Serial.println();
@@ -305,29 +426,6 @@ void printPWM(unsigned long timePWM) {
   Serial.println();
 }
 
-void modeOfDetector(unsigned long timePWM) {
 
-  if (timePWM >= 950 && timePWM <= 1350) {
-    analogWrite(modeDetectorOutput, 0);
-  } else if (timePWM >= 1400 && timePWM <= 1700) {
-    analogWrite(modeDetectorOutput, 78);
-  } else if (timePWM > 1750) {
-    analogWrite(modeDetectorOutput, 255);
-  }
-}
-
-void adjustSensitive(unsigned long timePWM) {
-
-  if (timePWM < 1000) {
-    timePWM = 1000;
-  }
-  if (timePWM > 1950) {
-    timePWM = 1950;
-  }
-
-  int valueOfSensitive = map(timePWM, 1000, 1950, 0, 255);
-  analogWrite(sensitiveOutput, valueOfSensitive);
-  //analogWrite(testPWM, valueOfSensitive);
-}
 
 // ------------------------------------ service ----------------------------------
