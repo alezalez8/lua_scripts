@@ -154,7 +154,6 @@ void loop() {
     String currentArray = dataString(levelData, arraySize);
     Serial.println(currentArray);
     Serial1.println(currentArray);
-    
   }
 
   // --------------------------- get data from sensors every 19 ms -----------------------
@@ -186,7 +185,6 @@ void loop() {
     timeInvokeLight = millis();
     managerLight(pulseWidth4);
   }
-
 }
 
 
@@ -311,7 +309,7 @@ void handleInterrupt4() {
 static void getDataLevelNew() {
   int currentLevel = 1;
   for (int i = 27; i >= 22; i--) {
-    if (digitalRead(i) == LOW) {    // change to HIGH for Кощей 5И
+    if (digitalRead(i) == LOW) {  // change to HIGH for Кощей 5И
       currentLevel = i - 21;
       break;
     }
@@ -339,22 +337,6 @@ static String dataString(int arr[], int size) {
 }
 
 
-static void getDataLevel() {
-  // uint8_t level_value = getLevel(!digitalRead(levePin1), !digitalRead(levePin2), !digitalRead(levePin3));
-  // printInt(level_value, true, 3);  // value from level sensor
-  uint8_t level_value = getNewLevel();
-  printInt(level_value, true, 3);
-}
-
-//-------------------------------------------------------------
-static int getLevel(bool value1, bool value2, bool value3) {
-  String binaryString;
-  binaryString += value3;
-  binaryString += value2;
-  binaryString += value1;
-  int decimalValue = binary_to_int(binaryString.c_str());  // convert to decimal
-  return decimalValue + 1;
-}
 //-------------------------------------------------------------
 static int getNewLevel() {
   int currentLevel = 1;
@@ -375,67 +357,7 @@ static int getNewLevel() {
   return currentLevel;
 }
 
-int binary_to_int(char *binary_string) {
-  int total = 0;
-  while (*binary_string) {
-    total *= 2;
-    if (*binary_string++ == '1')
-      total += 1;
-  }
-  return total;
-}
 
-
-//-------------------------------------------------------------
-static void printInt(unsigned long val, bool valid, int len) {
-  char sz[32] = "*****************";
-  if (valid)
-    sprintf(sz, "%ld", val);
-  sz[len] = 0;
-  for (int i = strlen(sz); i < len; ++i)
-    sz[i] = ' ';
-  if (len > 0)
-    sz[len - 1] = ' ';
-  Serial.print(sz);
-  Serial2.print(sz);
-}
-
-//-------------------------------------------------------------
-static void printLevel(unsigned long val, bool valid, int len) {
-  char sz[32] = "*****************";
-  if (valid)
-    sprintf(sz, "%ld", val);
-  sz[len] = 0;
-  for (int i = strlen(sz); i < len; ++i)
-    sz[i] = ' ';
-  if (len > 0)
-    sz[len - 1] = ' ';
-  Serial.print(sz);
-  Serial2.print(sz);
-}
-
-//-------------------------------------------------------------
-static void printFloat(float val, bool valid, int len, int prec) {
-  if (!valid) {
-    while (len-- > 1)
-      Serial.print('*');
-    Serial.print(' ');
-    Serial2.print('*');
-    Serial2.print(' ');
-  } else {
-    Serial.print(val, prec);
-    Serial2.print(val, prec);
-
-    int vi = abs((int)val);
-    int flen = prec + (val < 0.0 ? 2 : 1);
-    flen += vi >= 1000 ? 4 : vi >= 100 ? 3
-                           : vi >= 10  ? 2
-                                       : 1;
-    for (int i = flen; i < len; ++i)
-      Serial.print(' ');
-    Serial2.print(' ');
-  }
-}
 
 
 // --------------------------- new handlers ----------------------------------------------
