@@ -83,17 +83,17 @@ const int resetDetectorInput = 20;     // reset_on_off
 const int lightIR = 21;                // light on_off
 
 // ----------- for interrupt -----------------------
-volatile unsigned long pulseWidth1 = 0;  // time of PPM of S11 on FC - MODE
-volatile unsigned long pulseWidth2 = 0;  // time of PPM of S12 on FC - SENSITIVE
-volatile unsigned long pulseWidth3 = 0;  // time of PPM of S11 on FC - reset_on_off
-volatile unsigned long pulseWidth4 = 0;  // time of PPM of S12 on FC - light on_off
+volatile unsigned long pulseWidth1 = 1100;  // time of PPM of S11 on FC - MODE
+volatile unsigned long pulseWidth2 = 1100;  // time of PPM of S12 on FC - SENSITIVE
+volatile unsigned long pulseWidth3 = 1100;  // time of PPM of S11 on FC - reset_on_off
+volatile unsigned long pulseWidth4 = 1100;  // time of PPM of S12 on FC - light on_off
 
 void setup() {
   pinMode(lightOnOff, OUTPUT);
   pinMode(resetOutput, OUTPUT);
   pinMode(powerOnOff, OUTPUT);
-  pinMode(sensitiveOutput, OUTPUT);     // уточнить
-  pinMode(modeDetectorOutput, OUTPUT);  // уточнить
+  pinMode(sensitiveOutput, OUTPUT);     
+  pinMode(modeDetectorOutput, OUTPUT);  
   pinMode(sateliteFix, OUTPUT);
 
   pinMode(testLED, OUTPUT);
@@ -146,16 +146,16 @@ void loop() {
     Serial1.println(" 1 2 3 4 5 6 7 8 9 10");
   }
 
-  // ------------------------------- sensitive -------------------------------------------
-  if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod) {
-    timeInvokeSensitive = millis();
-    adjustSensitive(pulseWidth2);
-  }
-
   // -------------------------------- mode of detector -----------------------------------
   if (millis() - timeInvokeMode >= timeInvokeModePeriod) {
     timeInvokeMode = millis();
     modeOfDetector(pulseWidth1);
+  }
+
+  // ------------------------------- sensitive -------------------------------------------
+  if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod) {
+    timeInvokeSensitive = millis();
+    adjustSensitive(pulseWidth2);
   }
 
   // -------------------------------- power and reset ------------------------------------
@@ -172,7 +172,7 @@ void loop() {
 
 
   //====================================invoke gps and level===================
-  //delay(495);
+
 
   // if (millis() - timerLevel >= T_PERIOD_LEVEL) {
   //   timerLevel = millis();
@@ -210,12 +210,10 @@ void managerOfPowerReset(unsigned long timePWM) {
   } else if (timePWM >= 1400 && timePWM <= 1700) {
     digitalWrite(powerOnOff, 1);
     digitalWrite(resetOutput, 0);
-    //digitalWrite(testReset, 0);
 
   } else if (timePWM > 1750) {
     digitalWrite(powerOnOff, 1);
     digitalWrite(resetOutput, 1);
-    //digitalWrite(testReset, 1);
   }
 }
 
@@ -231,10 +229,7 @@ void managerLight(unsigned long timePWM) {
   if (timePWM >= 950 && timePWM <= 1350) {
     digitalWrite(lightOnOff, 0);
 
-  } else if (timePWM >= 1400 && timePWM <= 1700) {
-    digitalWrite(lightOnOff, 1);
-
-  } else if (timePWM > 1750) {
+  } else if (timePWM >= 1400 && timePWM <= 2000) {
     digitalWrite(lightOnOff, 1);
   }
 }
