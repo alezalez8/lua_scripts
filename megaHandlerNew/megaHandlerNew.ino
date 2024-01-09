@@ -150,12 +150,6 @@ void loop() {
       digitalWrite(testLED, ledOn);
     }
     Serial1.print(mydata);
-    //Serial1.println(" 1 2 3 4 5 6 7 8 9 10");
-
-    // for (int i = 0; i < 5; i++) {
-    //   Serial.print(levelData[i]);
-    // }
-    // Serial.println();
 
     String currentArray = dataString(levelData, arraySize);
     Serial.println(currentArray);
@@ -193,26 +187,7 @@ void loop() {
     managerLight(pulseWidth4);
   }
 
-
-  //====================================invoke gps and level===================
-
-
-  // if (millis() - timerLevel >= T_PERIOD_LEVEL) {
-  //   timerLevel = millis();
-  //   //---------------- dump data ----------------------------
-  //   Serial1.write(dumpCount);
-  //   Serial.println("-- print from loop ---");
-  //   Serial.print(dumpCount);
-  //   dumpCount++;
-  //   if (dumpCount > 9) {
-  //     dumpCount = 0;
-  //   }
-
-
-  //   //getDataLevel();
-  // }
 }
-
 
 
 //========================================================================= подпрограммы ===================================
@@ -336,7 +311,7 @@ void handleInterrupt4() {
 static void getDataLevelNew() {
   int currentLevel = 1;
   for (int i = 27; i >= 22; i--) {
-    if (digitalRead(i) == HIGH) {
+    if (digitalRead(i) == LOW) {    // change to HIGH for Кощей 5И
       currentLevel = i - 21;
       break;
     }
