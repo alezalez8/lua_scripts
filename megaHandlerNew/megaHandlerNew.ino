@@ -28,8 +28,13 @@
  * Serial2 (TX1 - 16, RX1 - 17 )   to UART of FC
  */
 
-uint32_t timerLevel = 0;    // timer for LEVEL
-#define T_PERIOD_LEVEL 100  // time of invoke data from sensor of level, mS. default = 3.7
+// ----- level sensors -------
+uint32_t timeLevel = 0;  // timer for LEVEL
+uint32_t timeLevelPeriod = 19;
+
+// ----- get GPS -------
+uint32_t timerGPS = 0;          // timer for LEVEL
+uint32_t timerGPSPeriod = 100;  // time of invoke data from sensor of level, mS. default = 3.7
 
 // ----- sensitive -------
 uint32_t timeInvokeSensitive = 0;
@@ -50,6 +55,9 @@ uint32_t timeInvokeLightPeriod = 100;
 uint32_t countOfInvokeLevel = 0;
 uint32_t dumpCount = 0;
 boolean ledOn = false;
+
+const int arraySize = 5;
+int levelData[arraySize] = { 1, 1, 2, 2, 3 };
 
 
 
@@ -92,8 +100,8 @@ void setup() {
   pinMode(lightOnOff, OUTPUT);
   pinMode(resetOutput, OUTPUT);
   pinMode(powerOnOff, OUTPUT);
-  pinMode(sensitiveOutput, OUTPUT);     
-  pinMode(modeDetectorOutput, OUTPUT);  
+  pinMode(sensitiveOutput, OUTPUT);
+  pinMode(modeDetectorOutput, OUTPUT);
   pinMode(sateliteFix, OUTPUT);
 
   pinMode(testLED, OUTPUT);
@@ -124,16 +132,15 @@ void setup() {
 void loop() {
 
   String mydata = "";
-
-  if (millis() - timerLevel >= T_PERIOD_LEVEL) {
-    timerLevel = millis();
-
+  // -------------------------------- get GPS and other from flight controller -------------
+  if (millis() - timerGPS >= timerGPSPeriod) {
+    timerGPS = millis();
 
     Serial2.write('5');
     while (Serial2.available()) {
       char dataGPS = Serial2.read();
       if (dataGPS == '@') {
-        Serial.println(" -------------- STOP ----------------------------");
+        Serial.println(" ------ STOP --------");
         break;
       }
 
@@ -143,7 +150,23 @@ void loop() {
       digitalWrite(testLED, ledOn);
     }
     Serial1.print(mydata);
-    Serial1.println(" 1 2 3 4 5 6 7 8 9 10");
+    //Serial1.println(" 1 2 3 4 5 6 7 8 9 10");
+
+    // for (int i = 0; i < 5; i++) {
+    //   Serial.print(levelData[i]);
+    // }
+    // Serial.println();
+
+    String currentArray = dataString(levelData, arraySize);
+    Serial.println(currentArray);
+    Serial1.println(currentArray);
+    
+  }
+
+  // --------------------------- get data from sensors every 19 ms -----------------------
+  if (millis() - timeLevel >= timeLevelPeriod) {
+    timeLevel = millis();
+    getDataLevelNew();
   }
 
   // -------------------------------- mode of detector -----------------------------------
@@ -306,6 +329,39 @@ void handleInterrupt4() {
   }
 }
 
+
+
+// ---------------------------------- get data from sensors ------------------------------
+
+static void getDataLevelNew() {
+  int currentLevel = 1;
+  for (int i = 27; i >= 22; i--) {
+    if (digitalRead(i) == HIGH) {
+      currentLevel = i - 21;
+      break;
+    }
+  }
+
+  for (int i = 0; i < arraySize - 1; i++) {
+    levelData[i] = levelData[i + 1];
+  }
+  levelData[arraySize - 1] = currentLevel;
+}
+
+static String dataString(int arr[], int size) {
+  String result = " ";
+
+  for (int i = 0; i < size; i++) {
+    // Convert each integer to a string and concatenate
+    result += String(arr[i]);
+
+    // Add a separator (optional, you can customize this)
+    if (i < size - 1) {
+      result += " ";
+    }
+  }
+  return result;
+}
 
 
 static void getDataLevel() {
