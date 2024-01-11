@@ -112,12 +112,12 @@ void setup() {
   pinMode(resetDetectorInput, INPUT);
   pinMode(lightIR, INPUT);
 
-  pinMode(levelPin1, INPUT);
-  pinMode(levelPin2, INPUT);
-  pinMode(levelPin3, INPUT);
-  pinMode(levelPin4, INPUT);
-  pinMode(levelPin5, INPUT);
-  pinMode(levelPin6, INPUT);
+  pinMode(levelPin1, INPUT_PULLUP);
+  pinMode(levelPin2, INPUT_PULLUP);
+  pinMode(levelPin3, INPUT_PULLUP);
+  pinMode(levelPin4, INPUT_PULLUP);
+  pinMode(levelPin5, INPUT_PULLUP);
+  pinMode(levelPin6, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(modeDetectorInput), handleInterrupt1, CHANGE);
   attachInterrupt(digitalPinToInterrupt(sensitiveDetectorInput), handleInterrupt2, CHANGE);

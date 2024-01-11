@@ -99,7 +99,8 @@ function update()
         gcs:send_named_float("LIDAR", lidar)
         gcs:send_text(6, lidar)
 
-        local battery1 = string.format("%.2f", battery_level)
+        --local battery1 = string.format("%.2f", battery_level)
+        local battery1 = "22.4"
 
         local dataString = "b " ..
             lat ..
