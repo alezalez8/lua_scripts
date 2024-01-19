@@ -5,7 +5,7 @@ if not port or baud == 0 then
     return
 end
 
-port:begin(9600)
+port:begin(57600)
 port:set_flow_control(0)
 
 local MAX_BUFFER = 10
@@ -83,6 +83,7 @@ function update()
     --getFromLogger()
     if port:available() > 0 then
         local nothing = port:read()
+        gcs:send_text(0, " begin work  ")
 
 
 
@@ -99,8 +100,8 @@ function update()
         gcs:send_named_float("LIDAR", lidar)
         gcs:send_text(6, lidar)
 
-        local battery1 = string.format("%.2f", battery_level)
-        --local battery1 = "22.4"
+        --local battery1 = string.format("%.2f", battery_level)
+        local battery1 = "22.4"
 
         local dataString = "b " ..
             lat ..
@@ -120,10 +121,11 @@ function update()
         gcs:send_named_float("LON_H", lngHigh)
         gcs:send_named_float("LON_L", lngLow)
         gcs:send_named_float("SATT", satt)
+        gcs:send_named_float("BATTERY", battery1)
     else
         gcs:send_text(6, " NO REQUEST")
     end
-    return update, 10
+    return update, 50
 end
 
 return update, 1000
