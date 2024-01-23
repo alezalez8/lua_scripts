@@ -4,12 +4,12 @@
  * LED 3D Fix (blue)                                              D28
 
  * -------------------------------- Pin level ----------------------
- * Level 1                                                        D22
- * Level 2                                                        D23
- * Level 3                                                        D24
- * Level 4                                                        D25
- * Level 5                                                        D26
- * Level 6                                                        D27
+ * Level 1                                                        D22  D33
+ * Level 2                                                        D23  D34 
+ * Level 3                                                        D24  D35
+ * Level 4                                                        D25  D36
+ * Level 5                                                        D26  D37
+ * Level 6                                                        D27  D38
  *
  * -------------------------------- Pin control input ---------------
  * MODE detector (to S11 FC)                                      D2
@@ -31,12 +31,12 @@
  */
 
 // ----- level sensors -------
-uint32_t timeLevel = 0; // timer for LEVEL
+uint32_t timeLevel = 0;  // timer for LEVEL
 uint32_t timeLevelPeriod = 19;
 
 // ----- get GPS -------
-uint32_t timerGPS = 0;         // timer for LEVEL
-uint32_t timerGPSPeriod = 100; // time of invoke data from sensor of level, mS. default = 100
+uint32_t timerGPS = 0;          // timer for LEVEL
+uint32_t timerGPSPeriod = 100;  // time of invoke data from sensor of level, mS. default = 100
 
 // ----- sensitive -------
 uint32_t timeInvokeSensitive = 0;
@@ -59,19 +59,28 @@ uint32_t dumpCount = 0;
 boolean ledOn = false;
 
 const int arraySize = 5;
-int levelData[arraySize] = {1, 1, 2, 2, 3};
+int levelData[arraySize] = { 1, 1, 2, 2, 3 };
 
-static const uint32_t GPSBaud = 57600; //
+static const uint32_t GPSBaud = 57600;  //
 
 String messageGPS = "";
 
 // ------------ level input --------------------------
-static const uint8_t levelPin1 = 22;
-static const uint8_t levelPin2 = 23;
-static const uint8_t levelPin3 = 24;
-static const uint8_t levelPin4 = 25;
-static const uint8_t levelPin5 = 26;
-static const uint8_t levelPin6 = 27;
+// static const uint8_t levelPin1 = 22;
+// static const uint8_t levelPin2 = 23;
+// static const uint8_t levelPin3 = 24;
+// static const uint8_t levelPin4 = 25;
+// static const uint8_t levelPin5 = 26;
+// static const uint8_t levelPin6 = 27;
+
+
+// ------------ level input --------------------------
+static const uint8_t levelPin1 = 33;
+static const uint8_t levelPin2 = 34;
+static const uint8_t levelPin3 = 35;
+static const uint8_t levelPin4 = 36;
+static const uint8_t levelPin5 = 37;
+static const uint8_t levelPin6 = 38;
 
 // ------------ led output ----------------------------
 const int sateliteFix = 28;
@@ -85,19 +94,18 @@ const int sensitiveOutput = 4;
 const int modeDetectorOutput = 5;
 
 // ------------- sygnal from FC --------------------
-const int modeDetectorInput = 2;      // mode of detector
-const int sensitiveDetectorInput = 3; // sensitive of detector
-const int resetDetectorInput = 20;    // reset_on_off
-const int lightIR = 21;               // light on_off
+const int modeDetectorInput = 2;       // mode of detector
+const int sensitiveDetectorInput = 3;  // sensitive of detector
+const int resetDetectorInput = 20;     // reset_on_off
+const int lightIR = 21;                // light on_off
 
 // ----------- for interrupt -----------------------
-volatile unsigned long pulseWidth1 = 1100; // time of PPM of S11 on FC - MODE
-volatile unsigned long pulseWidth2 = 1100; // time of PPM of S12 on FC - SENSITIVE
-volatile unsigned long pulseWidth3 = 1100; // time of PPM of S11 on FC - reset_on_off
-volatile unsigned long pulseWidth4 = 1100; // time of PPM of S12 on FC - light on_off
+volatile unsigned long pulseWidth1 = 1100;  // time of PPM of S11 on FC - MODE
+volatile unsigned long pulseWidth2 = 1100;  // time of PPM of S12 on FC - SENSITIVE
+volatile unsigned long pulseWidth3 = 1100;  // time of PPM of S11 on FC - reset_on_off
+volatile unsigned long pulseWidth4 = 1100;  // time of PPM of S12 on FC - light on_off
 
-void setup()
-{
+void setup() {
   pinMode(lightOnOff, OUTPUT);
   pinMode(resetOutput, OUTPUT);
   pinMode(powerOnOff, OUTPUT);
@@ -126,24 +134,20 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(lightIR), handleInterrupt4, CHANGE);
 
   Serial.begin(GPSBaud);
-  Serial1.begin(GPSBaud); // Connect to 3DR-modem
-  Serial2.begin(GPSBaud); // Connect to FC through the UART pins
+  Serial1.begin(GPSBaud);  // Connect to 3DR-modem
+  Serial2.begin(GPSBaud);  // Connect to FC through the UART pins
 }
 
-void loop()
-{
+void loop() {
 
   String mydata = "";
   // -------------------------------- get GPS and other from flight controller -------------
-  if (millis() - timerGPS >= timerGPSPeriod)
-  {
+  if (millis() - timerGPS >= timerGPSPeriod) {
     timerGPS = millis();
     Serial2.write('5');
-    while (Serial2.available())
-    {
+    while (Serial2.available()) {
       char dataGPS = Serial2.read();
-      if (dataGPS == '@')
-      {
+      if (dataGPS == '@') {
         // Serial.println(" ------ STOP --------");
         break;
       }
@@ -162,36 +166,31 @@ void loop()
   }
 
   // --------------------------- get data from sensors every 19 ms -----------------------
-  if (millis() - timeLevel >= timeLevelPeriod)
-  {
+  if (millis() - timeLevel >= timeLevelPeriod) {
     timeLevel = millis();
-    getDataLevelNew();
+    getDataLevelNewD();  // getDataLevelNew();    ************* change for port D22 ... D28
   }
 
   // -------------------------------- mode of detector -----------------------------------
-  if (millis() - timeInvokeMode >= timeInvokeModePeriod)
-  {
+  if (millis() - timeInvokeMode >= timeInvokeModePeriod) {
     timeInvokeMode = millis();
     modeOfDetector(pulseWidth1);
   }
 
   // ------------------------------- sensitive -------------------------------------------
-  if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod)
-  {
+  if (millis() - timeInvokeSensitive >= timeInvokeSensPeriod) {
     timeInvokeSensitive = millis();
     adjustSensitive(pulseWidth2);
   }
 
   // -------------------------------- power and reset ------------------------------------
-  if (millis() - timeInvokePower >= timeInvokePowerPeriod)
-  {
+  if (millis() - timeInvokePower >= timeInvokePowerPeriod) {
     timeInvokePower = millis();
     managerOfPowerReset(pulseWidth3);
   }
 
   // -------------------------------- light on\off ---------------------------------------
-  if (millis() - timeInvokeLight >= timeInvokeLightPeriod)
-  {
+  if (millis() - timeInvokeLight >= timeInvokeLightPeriod) {
     timeInvokeLight = millis();
     managerLight(pulseWidth4);
   }
@@ -200,84 +199,71 @@ void loop()
 //========================================================================= подпрограммы ===================================
 
 // --------------------- POWER ON\OFF AND RESET ------------------------------------------
-void managerOfPowerReset(unsigned long timePWM)
-{
-  if (timePWM < 1000)
-  {
+void managerOfPowerReset(unsigned long timePWM) {
+  if (timePWM < 1000) {
     timePWM = 1000;
   }
-  if (timePWM > 1950)
-  {
+  if (timePWM > 1950 && timePWM < 2000) {
     timePWM = 1950;
   }
+  if (timePWM > 2000) {
+    timePWM = 1000;
+  }
 
-  if (timePWM >= 950 && timePWM <= 1350)
-  {
+  if (timePWM >= 950 && timePWM <= 1350) {
     digitalWrite(powerOnOff, 0);
     digitalWrite(resetOutput, 0);
-  }
-  else if (timePWM >= 1400 && timePWM <= 1700)
-  {
+  } else if (timePWM >= 1400 && timePWM <= 1700) {
     digitalWrite(powerOnOff, 1);
     digitalWrite(resetOutput, 0);
-  }
-  else if (timePWM > 1750)
-  {
+  } else if (timePWM > 1750) {
     digitalWrite(powerOnOff, 1);
     digitalWrite(resetOutput, 1);
   }
 }
 
 // --------------------- LIGHT ON\OFF ----------------------------------------------------
-void managerLight(unsigned long timePWM)
-{
+void managerLight(unsigned long timePWM) {
 
-  if (timePWM < 1000)
-  {
+  if (timePWM < 1000) {
     timePWM = 1000;
   }
-  if (timePWM > 1950)
-  {
+  if (timePWM > 1950) {
     timePWM = 1950;
   }
-  if (timePWM >= 950 && timePWM <= 1350)
-  {
-    digitalWrite(lightOnOff, 0);
+
+  if (timePWM > 1950 && timePWM < 2000) {
+    timePWM = 1950;
   }
-  else if (timePWM >= 1400 && timePWM <= 2000)
-  {
+  if (timePWM > 2000) {
+    timePWM = 1000;
+  }
+  if (timePWM >= 950 && timePWM <= 1350) {
+    digitalWrite(lightOnOff, 0);
+  } else if (timePWM >= 1400 && timePWM <= 2000) {
     digitalWrite(lightOnOff, 1);
   }
 }
 
 // ----------------------- MODE DETECTOR -------------------------------------------------
-void modeOfDetector(unsigned long timePWM)
-{
+void modeOfDetector(unsigned long timePWM) {
 
-  if (timePWM >= 950 && timePWM <= 1350)
-  {
+  if (timePWM >= 950 && timePWM <= 1350) {
     analogWrite(modeDetectorOutput, 0);
-  }
-  else if (timePWM >= 1400 && timePWM <= 1700)
-  {
+  } else if (timePWM >= 1400 && timePWM <= 1700) {
     analogWrite(modeDetectorOutput, 78);
-  }
-  else if (timePWM > 1750)
-  {
+  } else if (timePWM > 1750) {
     analogWrite(modeDetectorOutput, 255);
   }
 }
 
 // ---------------------------- SENSITIVE ------------------------------------------------
-void adjustSensitive(unsigned long timePWM)
-{
+void adjustSensitive(unsigned long timePWM) {
 
-  if (timePWM < 1000)
-  {
+  if (timePWM < 1000) {
     timePWM = 1000;
   }
-  if (timePWM > 1950)
-  {
+  if (timePWM > 1950) {
     timePWM = 1950;
   }
   int valueOfSensitive = map(timePWM, 1000, 1950, 0, 255);
@@ -285,133 +271,118 @@ void adjustSensitive(unsigned long timePWM)
 }
 
 // --------------------- interrupts  -----------------------------------------------------
-void handleInterrupt1()
-{
+void handleInterrupt1() {
 
   static unsigned long startTime1 = 0;
   unsigned long currentTime1 = micros();
 
-  if (digitalRead(modeDetectorInput) == HIGH)
-  {
+  if (digitalRead(modeDetectorInput) == HIGH) {
     startTime1 = currentTime1;
-  }
-  else
-  {
+  } else {
     pulseWidth1 = currentTime1 - startTime1;
   }
 }
 
-void handleInterrupt2()
-{
+void handleInterrupt2() {
 
   static unsigned long startTime2 = 0;
   unsigned long currentTime2 = micros();
 
-  if (digitalRead(sensitiveDetectorInput) == HIGH)
-  {
+  if (digitalRead(sensitiveDetectorInput) == HIGH) {
     startTime2 = currentTime2;
-  }
-  else
-  {
+  } else {
     pulseWidth2 = currentTime2 - startTime2;
   }
 }
 
-void handleInterrupt3()
-{
+void handleInterrupt3() {
   static unsigned long startTime3 = 0;
   unsigned long currentTime3 = micros();
 
-  if (digitalRead(resetDetectorInput) == HIGH)
-  {
+  if (digitalRead(resetDetectorInput) == HIGH) {
     startTime3 = currentTime3;
-  }
-  else
-  {
+  } else {
     pulseWidth3 = currentTime3 - startTime3;
   }
 }
 
-void handleInterrupt4()
-{
+void handleInterrupt4() {
   static unsigned long startTime4 = 0;
   unsigned long currentTime4 = micros();
 
-  if (digitalRead(lightIR) == HIGH)
-  {
+  if (digitalRead(lightIR) == HIGH) {
     startTime4 = currentTime4;
-  }
-  else
-  {
+  } else {
     pulseWidth4 = currentTime4 - startTime4;
   }
 }
 
 // ---------------------------------- get data from sensors ------------------------------
 
-static void getDataLevelNew()
-{
+static void getDataLevelNew() {
   int currentLevel = 1;
-  for (int i = 27; i >= 22; i--)
-  {
-    if (digitalRead(i) == LOW)
-    { // change to HIGH for Кощей 5И
+  for (int i = 27; i >= 22; i--) {
+    if (digitalRead(i) == LOW) {  // change to HIGH for Кощей 5И
       currentLevel = i - 21;
       break;
     }
   }
 
-  for (int i = 0; i < arraySize - 1; i++)
-  {
+  for (int i = 0; i < arraySize - 1; i++) {
     levelData[i] = levelData[i + 1];
   }
   levelData[arraySize - 1] = currentLevel;
 }
 
-static String dataString(int arr[], int size)
-{
+// ---------------------------------- get data from sensors for D33 - D38 ----------------
+
+static void getDataLevelNewD() {
+  int currentLevel = 1;
+  for (int i = 38; i >= 33; i--) {
+    if (digitalRead(i) == LOW) {
+      currentLevel = i - 32;
+      break;
+    }
+  }
+
+  for (int i = 0; i < arraySize - 1; i++) {
+    levelData[i] = levelData[i + 1];
+  }
+  levelData[arraySize - 1] = currentLevel;
+}
+
+// ------------------------- print data from level ---------------------------------------
+static String dataString(int arr[], int size) {
   String result = " ";
 
-  for (int i = 0; i < size; i++)
-  {
+  for (int i = 0; i < size; i++) {
+
     // Convert each integer to a string and concatenate
     result += String(arr[i]);
 
     // Add a separator (optional, you can customize this)
-    if (i < size - 1)
-    {
+    if (i < size - 1) {
       result += " ";
     }
   }
+
   return result;
 }
 
 //-------------------------------------------------------------
-static int getNewLevel()
-{
+static int getNewLevel() {
   int currentLevel = 1;
-  if (digitalRead(levelPin1) == 1)
-  {
+  if (digitalRead(levelPin1) == 1) {
     currentLevel = 1;
-  }
-  else if (digitalRead(levelPin2) == 1)
-  {
+  } else if (digitalRead(levelPin2) == 1) {
     currentLevel = 2;
-  }
-  else if (digitalRead(levelPin3) == 1)
-  {
+  } else if (digitalRead(levelPin3) == 1) {
     currentLevel = 3;
-  }
-  else if (digitalRead(levelPin4) == 1)
-  {
+  } else if (digitalRead(levelPin4) == 1) {
     currentLevel = 4;
-  }
-  else if (digitalRead(levelPin5) == 1)
-  {
+  } else if (digitalRead(levelPin5) == 1) {
     currentLevel = 5;
-  }
-  else if (digitalRead(levelPin6) == 1)
-  {
+  } else if (digitalRead(levelPin6) == 1) {
     currentLevel = 6;
   }
 
@@ -420,8 +391,7 @@ static int getNewLevel()
 
 // --------------------------- new handlers ----------------------------------------------
 
-void printPWM(unsigned long timePWM)
-{
+void printPWM(unsigned long timePWM) {
   Serial.println();
   String message = " Time of PWM =  ";
   Serial.print(message);
