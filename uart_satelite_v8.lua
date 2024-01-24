@@ -10,6 +10,7 @@ port:set_flow_control(0)
 
 local MAX_BUFFER = 10
 local if_request = true
+local lat, lng, satt
 
 
 function getFromLogger()
@@ -80,51 +81,41 @@ function update()
         gcs:send_text(0, "no Scripting Serial Port")
         return update, 100
     end
-    --getFromLogger()
+
     if port:available() > 0 then
         local nothing = port:read()
-        -- gcs:send_text(0, " begin work  ")
+
+        if (arming:is_armed()) then
+            lat, lng, satt = getGPS()
+        else
+            lat = 0
+            lng = 0
+            satt = 0
+        end
 
 
-
-
-        local lat, lng, satt = getGPS()
-        local latHigh, latLow = splitNumberGPS(lat)
-        local lngHigh, lngLow = splitNumberGPS(lng)
 
         local lidar = rangefinder:distance_cm_orient(25)
         local battery_level = battery:voltage(0)
         local gpsok = 0
 
-        --gcs:send_named_float("BATTERY", battery_level)
-        -- gcs:send_named_float("LIDAR", lidar)
-        -- gcs:send_text(6, lidar)
-
         local battery1 = string.format("%.2f", battery_level)
-        --local battery1 = "22.4"
 
         local dataString = "b " ..
             lat ..
             " " ..
             lng .. " " .. lidar .. " " .. battery1 .. " s " .. satt .. " d @"
 
+
         local asciiCodes = {}
         for i = 1, #dataString do
             local asciiCode = string.byte(dataString, i)
             port:write(asciiCode)
         end
-        --port:write(64) -- @
-
-
-        --gcs:send_named_float("LAT_H", latHigh)
-        --gcs:send_named_float("LAT_L", latLow)
-        --gcs:send_named_float("LON_H", lngHigh)
-        --gcs:send_named_float("LON_L", lngLow)
-        --gcs:send_named_float("SATT", satt)
-        --gcs:send_named_float("BATTERY", battery1)
-    else
-        --gcs:send_text(6, " NO REQUEST")
     end
+
+
+
     return update, 50
 end
 
