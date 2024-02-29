@@ -116,7 +116,7 @@ function update()
 
 
 
-    return update, 50
+    return update, 500
 end
 
 return update, 1000
